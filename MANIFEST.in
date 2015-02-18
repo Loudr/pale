@@ -1,1 +1,2 @@
+include bin/paledoc
 recursive-include pale *.py

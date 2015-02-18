@@ -12,6 +12,10 @@ setup(
   description="Pale is a framework for crafting HTTP APIs.",
   license="Copyright 2015-present, Loudr.fm. All rights reserved.",
   url="https://github.com/Loudr/pale",
-  packages=find_packages()
+  packages=find_packages(),
+  scripts=['bin/paledoc'],
+  entry_points={
+    'console_scripts': ['paledoc = pale.doc.paledoc:run_pale_doc']
+  }
 )
 
