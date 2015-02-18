@@ -15,6 +15,6 @@ setup(
     packages=find_packages(),
     scripts=['bin/paledoc'],
     entry_points={
-        'console_scripts': ['paledoc = pale.doc.paledoc:run_pale_doc']
+        'console_scripts': ['paledoc = pale.doc:run_pale_doc']
     }
 )
