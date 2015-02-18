@@ -1,1 +1,1 @@
-recursive-include pale/ *.py
+recursive-include pale *.py
