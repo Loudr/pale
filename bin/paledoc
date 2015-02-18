@@ -3,4 +3,4 @@
 from pale.doc.paledoc import run_pale_doc
 
 if __name__ == '__main__':
-  run_pale_doc()
+    run_pale_doc()

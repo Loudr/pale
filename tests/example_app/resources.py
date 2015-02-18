@@ -2,7 +2,7 @@ import datetime
 
 from pale import Resource
 
-from test.flask_example.models import DateTimeModel
+from tests.example_app.models import DateTimeModel
 
 class DateTimeResource(Resource):
   """A simple datetime resource used for testing Pale Resources."""

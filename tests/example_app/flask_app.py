@@ -1,7 +1,8 @@
 import flask
 
 from pale.adapters import flask as pale_flask_adapter
-from test.flask_example import api
+
+from tests.example_app import api
 
 
 def create_pale_flask_app():

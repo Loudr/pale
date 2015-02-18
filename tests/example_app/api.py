@@ -1,4 +1,4 @@
 import pale
-from test.flask_example import endpoints, resources
+from tests.example_app import endpoints, resources
 
 _module_type = pale.ImplementationModule
