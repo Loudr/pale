@@ -1,0 +1,3 @@
+recursive-include adapters/ *.py
+recursive-include arguments/ *.py
+recursive-include errors/ *.py
