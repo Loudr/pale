@@ -1,12 +1,12 @@
 import inspect
 import types
 
-import adapters
-import arguments
-import config
-import context
-from endpoint import Endpoint
-from resource import NoContentResource, Resource, ResourceList
+from . import adapters
+from . import arguments
+from . import config
+from . import context
+from .endpoint import Endpoint
+from .resource import NoContentResource, Resource, ResourceList
 
 ImplementationModule = "_pale__api_implementation"
 
