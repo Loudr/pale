@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 with open(path.join(path.dirname(__file__), 'README.md')) as readme:
