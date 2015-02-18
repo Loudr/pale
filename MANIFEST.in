@@ -1,1 +1,1 @@
-recursive-include pale/adapters *.py
+recursive-include pale *.py
