@@ -1,11 +1,13 @@
+import json
 import unittest
 
 from pale.doc import generate_doc_dict, generate_json_docs
 
-class PaleDocDictTests(unittest.TestCase):
+class PaleDocTests(unittest.TestCase):
     def setUp(self):
-        super(PaleDocDictTests, self).setUp()
+        super(PaleDocTests, self).setUp()
         from tests import example_app
+        self.example_app = example_app
         self.doc_dict = generate_doc_dict(example_app)
 
 
@@ -15,6 +17,12 @@ class PaleDocDictTests(unittest.TestCase):
 
         self.assertTrue('resources' in self.doc_dict)
         self.assertTrue(isinstance(self.doc_dict['resources'], list))
+
+
+    def test_doc_json(self):
+        json_docs = generate_json_docs(self.example_app)
+        json_dict = json.loads(json_docs)
+        self.assertDictEqual(json_dict, self.doc_dict)
 
 
     def test_endpoint_without_args_docs(self):
