@@ -1,17 +1,23 @@
 import json
-import re
-import sys
 
-from pale import extract_endpoints
+from pale import extract_endpoints, extract_resources
+from pale.utils import py_doc_trim
+
 
 def run_pale_doc():
   print "hello"
 
 
-# this guy matches a single newline, but omits chunks of newlines strewn
-# together, so that a string like "hi i am\nsome documentation\n\nhello"
-# can be substituted to read "hi i am some documentation\n\nhello"
-newline_substitution_regex = re.compile(r"(?<!\n)\n(?!\n)")
+def generate_json_docs(module):
+    """Return a JSON string format of a Pale module's documentation.
+
+    This string can either be printed out, written to a file, or piped to some
+    other tool.
+
+    This method is a shorthand for calling `generate_doc_dict` and passing
+    it into a json serializer.
+    """
+    return json.dumps(generate_doc_dict(module))
 
 
 def generate_doc_dict(module):
@@ -21,15 +27,16 @@ def generate_doc_dict(module):
     or passed to a template engine, or manipulated in some other way.
     """
     module_endpoints = extract_endpoints(module)
+    ep_doc = { ep.name: document_endpoint(ep) for ep in module_endpoints }
 
-    ep_doc = { ep.name: extract_endpoint_doc(ep) for ep in module_endpoints }
-    res_doc = []
+    module_resources = extract_resources(module)
+    res_doc = [document_resource(r) for r in module_resources]
 
     return {'endpoints': ep_doc,
             'resources': res_doc}
 
 
-def extract_endpoint_doc(endpoint):
+def document_endpoint(endpoint):
     """Extract the full documentation dictionary from the endpoint."""
     descr = py_doc_trim(endpoint.__doc__)
     docs = {
@@ -78,50 +85,8 @@ def format_endpoint_returns_doc(endpoint):
     }
 
 
-def generate_json_docs(module):
-    """Return a JSON string format of a Pale module's documentation.
-
-    This string can either be printed out, written to a file, or piped to some
-    other tool.
-
-    This method is a shorthand for calling `generate_doc_dict` and passing
-    it into a json serializer.
-    """
-    return json.dumps(generate_doc_dict(module))
-
-
-def py_doc_trim(docstring):
-    """Trim a python doc string.
-
-    This example is nipped from https://www.python.org/dev/peps/pep-0257/,
-    which describes how to conventionally format and trim docstrings.
-
-    It has been modified to replace single newlines with a space, but leave
-    multiple consecutive newlines in tact.
-    """
-    if not docstring:
-        return ''
-    # Convert tabs to spaces (following the normal Python rules)
-    # and split into a list of lines:
-    lines = docstring.expandtabs().splitlines()
-    # Determine minimum indentation (first line doesn't count):
-    indent = sys.maxint
-    for line in lines[1:]:
-        stripped = line.lstrip()
-        if stripped:
-            indent = min(indent, len(line) - len(stripped))
-    # Remove indentation (first line is special):
-    trimmed = [lines[0].strip()]
-    if indent < sys.maxint:
-        for line in lines[1:]:
-            trimmed.append(line[indent:].rstrip())
-    # Strip off trailing and leading blank lines:
-    while trimmed and not trimmed[-1]:
-        trimmed.pop()
-    while trimmed and not trimmed[0]:
-        trimmed.pop(0)
-    # The single string returned by the original function
-    joined = '\n'.join(trimmed)
-    # Return a version that replaces single newlines with spaces
-    return newline_substitution_regex.sub(" ", joined)
-
+def document_resource(resource):
+    return {
+        'name': resource.name,
+        'description': py_doc_trim(resource.__doc__)
+    }

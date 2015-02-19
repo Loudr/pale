@@ -112,3 +112,14 @@ class PaleDocDictTests(unittest.TestCase):
         self.assertEqual(incl_time['type'], 'BooleanArgument')
         self.assertEqual(incl_time['default'], False)
         self.assertEqual(incl_time['required'], False)
+
+
+    def test_resource_doc(self):
+        resources = self.doc_dict['resources']
+        # we only defined one resource in the example app
+        self.assertEqual(len(resources), 1)
+
+        resource = resources[0]
+        self.assertEqual(resource['name'], 'DateTime')
+        self.assertEqual(resource['description'],
+                'A simple datetime resource used for testing Pale Resources.')
