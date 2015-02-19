@@ -2,11 +2,12 @@ from pale.errors import ArgumentError
 
 class BaseArgument(object):
 
-    def __init__(self, short_doc, long_doc=None, required=False, default=None):
+    def __init__(self,
+            short_doc,
+            **kwargs):
         self.description = short_doc
-        self.long_doc = long_doc
-        self.required = required
-        self.default = default
+        for k, v in kwargs.iteritems():
+            setattr(self, k, v)
 
     def validate(self, item, item_name):
         raise ArgumentError(item_name,

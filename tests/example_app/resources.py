@@ -7,6 +7,7 @@ from tests.example_app.models import DateTimeModel
 class DateTimeResource(Resource):
     """A simple datetime resource used for testing Pale Resources."""
     model = DateTimeModel
+    name = "DateTime"
 
     def render_serializable(self, instance, context):
         """Renders the `instance` of datetime for the context provided.

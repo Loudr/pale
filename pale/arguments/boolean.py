@@ -8,7 +8,7 @@ class BooleanArgument(BaseArgument):
             item = self.default
 
         if isinstance(item, (str, unicode)):
-            # coerce string types to bool, since we might get a string type'
+            # coerce string types to bool, since we might get a string type
             # from the HTTP library
             val = item
             if val == 'true' or val == 'True':

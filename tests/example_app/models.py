@@ -6,7 +6,8 @@ class DateTimeModel(object):
 
     extra_fields = ('hours',
                   'minutes',
-                  'seconds')
+                  'seconds',
+                  'name')
 
     all_fields = tuple(set(default_fields + extra_fields))
 
