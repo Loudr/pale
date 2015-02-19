@@ -3,6 +3,8 @@ from pale.errors import ArgumentError
 
 class StringArgument(BaseArgument):
     allowed_types = (str, unicode)
+    min_length = None
+    max_length = None
 
     def validate(self, item, item_name):
         if item is None:
@@ -18,6 +20,13 @@ class StringArgument(BaseArgument):
         if item is not None:
             item = str(item)
         return item
+
+
+    def doc_dict(self):
+        doc = super(StringArgument, self).doc_dict()
+        doc['min_length'] = self.min_length
+        doc['max_length'] = self.max_length
+        return doc
 
 
 class StringListArgument(ListArgument):

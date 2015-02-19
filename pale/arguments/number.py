@@ -43,3 +43,10 @@ class IntegerArgument(BaseArgument):
                         self.max_value))
 
         return item
+
+
+    def doc_dict(self):
+        doc = super(IntegerArgument, self).doc_dict()
+        doc['min_value'] = self.min_value
+        doc['max_value'] = self.max_value
+        return doc

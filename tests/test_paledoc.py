@@ -72,8 +72,8 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(month_arg['type'], 'IntegerArgument')
         self.assertEqual(month_arg['default'], None)
         self.assertEqual(month_arg['min_value'], 1)
-        self.assertEqual(month_arg['min_value'], 12)
-        self.assertEqual(month_arg['required'], False)
+        self.assertEqual(month_arg['max_value'], 12)
+        self.assertEqual(month_arg['required'], True)
 
         # day, which is barebones
         day_arg = args['day']
@@ -91,7 +91,7 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(name_arg['detailed_description'],
                 "You can give your time a name, which will be returned back to you in the response, as the field `name`. If you omit this input parameter, your response won't include a `name`.")
         self.assertEqual(name_arg['type'], 'StringArgument')
-        self.assertEqual(name_arg['default'], False)
+        self.assertEqual(name_arg['default'], None)
         self.assertEqual(name_arg['required'], False)
         self.assertEqual(name_arg['min_length'], 3)
         self.assertEqual(name_arg['max_length'], 20)

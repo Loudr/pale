@@ -44,10 +44,26 @@ def extract_endpoint_doc(endpoint):
 def extract_endpoint_arguments(endpoint):
     """Extract the argument documentation from the endpoint."""
 
-    args = endpoint.arguments
-    if args is None:
+    ep_args = endpoint.arguments
+    if ep_args is None:
         return None
-    return []
+
+    arg_docs = { k: format_endpoint_argument_doc(a) \
+            for k, a in ep_args.iteritems() }
+    return arg_docs
+
+
+def format_endpoint_argument_doc(argument):
+    """Return documentation about the argument that an endpoint accepts."""
+    doc = argument.doc_dict()
+
+    # Trim the strings a bit
+    doc['description'] = py_doc_trim(doc['description'])
+    details = doc.get('detailed_description', None)
+    if details is not None:
+        doc['detailed_description'] = py_doc_trim(details)
+
+    return doc
 
 
 def format_endpoint_returns_doc(endpoint):
@@ -58,7 +74,6 @@ def format_endpoint_returns_doc(endpoint):
         'resource_name': endpoint.returns.name,
         'resource_type': endpoint.returns.__class__.__name__
     }
-
 
 
 def generate_json_docs(module):
