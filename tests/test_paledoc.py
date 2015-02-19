@@ -2,33 +2,28 @@ import unittest
 
 from pale.doc import generate_doc_dict, generate_json_docs
 
-class PaleDocTests(unittest.TestCase):
+class PaleDocDictTests(unittest.TestCase):
     def setUp(self):
-        super(PaleDocTests, self).setUp()
-
-
-    def test_generate_json(self):
-        """The expectations in this test are based on the example project
-        located in `tests/example_app`.
-        """
+        super(PaleDocDictTests, self).setUp()
         from tests import example_app
-        doc_dict = generate_doc_dict(example_app)
+        self.doc_dict = generate_doc_dict(example_app)
 
-        self.assertTrue('endpoints' in doc_dict)
-        self.assertTrue(isinstance(doc_dict['endpoints'], (dict)))
 
-        endpoints = doc_dict['endpoints']
-        self.validate_example_app_endpoint_doc(endpoints)
+    def test_doc_dict_root_structure(self):
+        self.assertTrue('endpoints' in self.doc_dict)
+        self.assertTrue(isinstance(self.doc_dict['endpoints'], dict))
 
-        resources = doc_dict['resources']
-        self.validate_example_app_resource_doc(resources)
+        self.assertTrue('resources' in self.doc_dict)
+        self.assertTrue(isinstance(self.doc_dict['resources'], list))
 
-    def validate_example_app_endpoint_doc(self, endpoint_dict):
+
+    def test_endpoint_without_args_docs(self):
+        endpoints = self.doc_dict['endpoints']
         # we defined two endpoints in the example app
-        self.assertEqual(len(endpoint_dict), 2)
+        self.assertEqual(len(endpoints), 2)
 
         # the current time endpoint
-        current_time_doc = endpoint_dict['current_time']
+        current_time_doc = endpoints['current_time']
 
         self.assertEqual(current_time_doc['uri'], '/current_time/')
         self.assertEqual(current_time_doc['http_method'], 'GET')
@@ -41,10 +36,22 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(return_doc['resource_type'], 'DateTimeResource')
 
 
-        parse_time_doc = endpoint_dict['parse_time']
+    def test_endpoint_with_args_docs(self):
+        endpoints = self.doc_dict['endpoints']
+        # we defined two endpoints in the example app
+        self.assertEqual(len(endpoints), 2)
+
+        # the current time endpoint
+        parse_time_doc = endpoints['parse_time']
 
         self.assertEqual(parse_time_doc['uri'], '/parse_time/')
         self.assertEqual(parse_time_doc['http_method'], 'POST')
+
+        return_doc = parse_time_doc['returns']
+        self.assertEqual(return_doc['description'],
+                "The DateTimeResource corresponding to the timing information sent in by the requester.")
+        self.assertEqual(return_doc['resource_name'], 'DateTime')
+        self.assertEqual(return_doc['resource_type'], 'DateTimeResource')
 
         args = parse_time_doc['arguments']
         self.assertEqual(len(args), 5)
@@ -105,14 +112,3 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(incl_time['type'], 'BooleanArgument')
         self.assertEqual(incl_time['default'], False)
         self.assertEqual(incl_time['required'], False)
-
-
-        return_doc = current_time_doc['returns']
-        self.assertEqual(return_doc['description'],
-                "The DateTimeResource representation of the current time on the server.")
-        self.assertEqual(return_doc['resource_name'], 'DateTime')
-        self.assertEqual(return_doc['resource_type'], 'DateTimeResource')
-
-
-    def validate_example_app_resource_doc (self, resource_dict):
-        self.assertFalse(True)
