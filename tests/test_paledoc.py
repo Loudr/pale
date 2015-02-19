@@ -31,7 +31,7 @@ class PaleDocTests(unittest.TestCase):
         current_time_doc = endpoint_dict['current_time']
 
         self.assertEqual(current_time_doc['uri'], '/current_time/')
-        self.assertEqual(current_time_doc['method'], 'GET')
+        self.assertEqual(current_time_doc['http_method'], 'GET')
         self.assertEqual(current_time_doc['arguments'], None)
 
         return_doc = current_time_doc['returns']
@@ -44,9 +44,9 @@ class PaleDocTests(unittest.TestCase):
         parse_time_doc = endpoint_dict['parse_time']
 
         self.assertEqual(parse_time_doc['uri'], '/parse_time/')
-        self.assertEqual(parse_time_doc['method'], 'POST')
+        self.assertEqual(parse_time_doc['http_method'], 'POST')
 
-        args = parse_time_doc['args']
+        args = parse_time_doc['arguments']
         self.assertEqual(len(args), 5)
 
         self.assertTrue('year' in args)

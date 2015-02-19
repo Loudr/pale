@@ -6,15 +6,14 @@ from tests.example_app.models import DateTimeModel
 from tests.example_app.resources import DateTimeResource
 
 class CurrentTimeEndpoint(Endpoint):
-    """An API endpoint to get the current time.
-    """
+    """An API endpoint to get the current time."""
     name = "current_time"
     method = "GET"
     uri = "/current_time/"
 
     returns = DateTimeResource(
-        "The DateTimeResource representation of the current time on the \
-        server.",
+        """The DateTimeResource representation of the current time on the
+        server.""",
         fields=DateTimeModel.all_fields)
 
     def handle(self, context):
