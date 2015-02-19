@@ -23,8 +23,10 @@ def generate_doc_dict(module):
     module_endpoints = extract_endpoints(module)
 
     ep_doc = { ep.name: extract_endpoint_doc(ep) for ep in module_endpoints }
+    res_doc = []
 
-    return {'endpoints': ep_doc}
+    return {'endpoints': ep_doc,
+            'resources': res_doc}
 
 
 def extract_endpoint_doc(endpoint):
