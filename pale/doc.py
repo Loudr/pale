@@ -37,7 +37,8 @@ def generate_json_docs(module):
     This method is a shorthand for calling `generate_doc_dict` and passing
     it into a json serializer.
     """
-    return json.dumps(generate_doc_dict(module))
+    json_str = json.dumps(generate_doc_dict(module))
+    return json_str
 
 
 def generate_doc_dict(module):
