@@ -5,6 +5,7 @@ from . import adapters
 from . import arguments
 from . import config
 from . import context
+from . import doc
 from .endpoint import Endpoint
 from .resource import NoContentResource, Resource, ResourceList
 

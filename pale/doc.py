@@ -2,9 +2,7 @@ import argparse
 import imp
 import json
 
-from pale import extract_endpoints, extract_resources
 from pale.utils import py_doc_trim
-
 
 
 def run_pale_doc():
@@ -13,7 +11,7 @@ def run_pale_doc():
     args = parser.parse_args()
     module_path = initify_module_path(args.path_to_pale_module)
     try:
-        pale_module = imp.load_source('paledoc.loaded_implemntation',
+        pale_module = imp.load_source('loaded_pale_implemntation',
                 module_path)
     except Exception as e:
         print e
@@ -48,6 +46,13 @@ def generate_doc_dict(module):
     The returned dictionary is suitable to be rendered by a JSON formatter,
     or passed to a template engine, or manipulated in some other way.
     """
+    from pale import extract_endpoints, extract_resources, is_pale_module
+    if not is_pale_module(module):
+        raise ValueError(
+                """The passed in `module` (%s) is not a pale module. `paledoc`
+                only works on modules with a `_module_type` set to equal
+                `pale.ImplementationModule`.""")
+
     module_endpoints = extract_endpoints(module)
     ep_doc = { ep.name: document_endpoint(ep) for ep in module_endpoints }
 
