@@ -1,6 +1,6 @@
 import unittest
 
-from pale.fields import BaseField
+from pale.fields import BaseField, StringField
 
 class FieldsTests(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class FieldsTests(unittest.TestCase):
         super(FieldsTests, self).setUp()
 
 
-    def test_instantiate_base_field_without_details(self):
+    def test_create_base_field_without_details(self):
         field = BaseField('user_id',
                           'integer',
                           'This is a test field')
@@ -23,7 +23,7 @@ class FieldsTests(unittest.TestCase):
         self.assertEqual(doc['description'], 'This is a test field')
         self.assertIsNone(doc['extended_description'])
 
-    def test_instantiate_base_field_with_details(self):
+    def test_create_base_field_with_details(self):
         field = BaseField('user_id',
                           'integer',
                           'This is a test field',
@@ -41,3 +41,33 @@ class FieldsTests(unittest.TestCase):
         self.assertEqual(doc['extended_description'],
                 'This is where I put special notes about the field')
 
+
+    def test_create_string_field_without_details(self):
+        field = StringField('name', 'Your name')
+        self.assertEqual(field.name, 'name')
+        self.assertEqual(field.field_type, 'string')
+        self.assertEqual(field.description, 'Your name')
+        self.assertIsNone(field.details)
+
+        doc = field.doc_dict()
+        self.assertEqual(doc['name'], 'name')
+        self.assertEqual(doc['type'], 'string')
+        self.assertEqual(doc['description'], 'Your name')
+        self.assertIsNone(doc['extended_description'])
+
+
+    def test_create_string_field_with_details(self):
+        field = StringField('name', 'Your name',
+                "You should expect a real name here, not some mish-mosh")
+        self.assertEqual(field.name, 'name')
+        self.assertEqual(field.field_type, 'string')
+        self.assertEqual(field.description, 'Your name')
+        self.assertEqual(field.details,
+                "You should expect a real name here, not some mish-mosh")
+
+        doc = field.doc_dict()
+        self.assertEqual(doc['name'], 'name')
+        self.assertEqual(doc['type'], 'string')
+        self.assertEqual(doc['description'], 'Your name')
+        self.assertEqual(doc['extended_description'],
+                "You should expect a real name here, not some mish-mosh")
