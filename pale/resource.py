@@ -3,6 +3,13 @@ import types
 
 class Resource(object):
 
+    available_fields = {}
+    default_fields = ()
+
+    @classmethod
+    def all_fields(cls):
+        return tuple(cls.available_fields.keys())
+
     def __init__(self, doc_string=None, fields=None):
         """Initialize the resource with the provided doc string and fields.
 
@@ -11,28 +18,10 @@ class Resource(object):
         part of a ResourceList or ResourceDict.
         """
         self.description = doc_string
-        if fields is None:
-            fields = self.default_fields()
-        self.fields = fields
-
-
-    def default_fields(self):
-        """The base Resource attempts to look for a `model` attribute on the
-        instance, and if it's present, attempts to find the `default_fields`
-        attribute on the model.  If either of those is missing, it will return
-        an empty fieldset.
-
-        If you need to do anything more fancy for your Resource, you should
-        subclass this method and do what you need to do.
-        """
-        if hasattr(self, 'model') and hasattr(self.model, 'default_fields'):
-            return self.model.default_fields
-
-        logging.warn("""Couldn't find a `self.model` or a \
-`self.model.default_fields` value on %s, so the base Resource class \
-is returning an empty field set.  This is probably not what you \
-want!""", self.__class__)
-        return ()
+        if fields is not None:
+            self.fields_to_render = fields
+        else:
+            self.fields_to_render = self.default_fields
 
 
     def render_serializable(self, obj, context):
@@ -40,14 +29,28 @@ want!""", self.__class__)
         Usually this means turning a Python object into a dict, but sometimes
         it might make sense to render a list, or a string, or a tuple.
 
-        Your subclass(es) of Resource should implement this method to serialize
-        your things.
+        In this base class, we provide a default implementation that assumes
+        some things about your application architecture, namely, that your
+        models specified in `underlying_model` have properties with the same
+        name as all of the `available_fields` that you've specified on a
+        resource, and that all of those fields are public.
+
+        Obviously this may not be appropriate for your app, so your
+        subclass(es) of Resource should implement this method to serialize
+        your things in the way that works for you.
 
         Do what you need to do.  The world is your oyster.
         """
-        logging.error("""Careful, you're calling .render_serializable on the
+        logging.info("""Careful, you're calling .render_serializable on the
         base resource, which is probably not what you actually want to be
         doing!""")
+        output = {}
+        if self.fields_to_render is None:
+            return output
+        for field in self.fields_to_render:
+            output[field] = getattr(obj, field)
+        return output
+
 
 
 class ResourceList(Resource):

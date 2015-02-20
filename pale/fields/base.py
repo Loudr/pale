@@ -1,4 +1,3 @@
-
 class BaseField(object):
     """The base class for all Fields and Arguments.
 
@@ -14,19 +13,40 @@ class BaseField(object):
     include validation functionality.
     """
 
-    def __init__(self, name, field_type, description, details=None):
-        self.name = name
-        self.field_type = field_type
+    def __init__(self, value_type, description, details=None):
+        self.value_type = value_type
         self.description = description
         self.details = details
+
+
+    def render(self, obj, name):
+        """The default field renderer.
+
+        This basic renderer assumes that the object has an attribute with the
+        same name as the field."""
+        return getattr(obj, name)
 
 
     def doc_dict(self):
         """Generate the documentation for this field."""
         doc = {
             'name': self.name,
-            'type': self.field_type,
+            'type': self.value_type,
             'description': self.description,
             'extended_description': self.details
         }
+        return doc
+
+class ListField(BaseField):
+    """A Field that contains a list of Fields."""
+    value_type = 'list'
+
+    def __init__(self, description, details=None, item_type=BaseField):
+        self.description = description
+        self.details = details
+        self.item_type = item_type
+
+    def doc_dict(self):
+        doc = super(ListField, self).doc_dict()
+        doc['item_type'] = item_type.name
         return doc

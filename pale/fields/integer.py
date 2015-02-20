@@ -1,8 +1,8 @@
 from pale.fields.base import BaseField
 
-class StringField(BaseField):
-    """A BaseField whose type is `string`."""
-    value_type = 'string'
+class IntegerField(BaseField):
+    """A BaseField whose type is `integer`."""
+    value_type = 'integer'
 
     def __init__(self, description, details=None):
         self.description = description

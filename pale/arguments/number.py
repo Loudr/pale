@@ -1,6 +1,7 @@
 from .base import BaseArgument
 
 class IntegerArgument(BaseArgument):
+    value_type = 'integer'
     allowed_types = (int, long)
     min_value = None
     max_value = None
