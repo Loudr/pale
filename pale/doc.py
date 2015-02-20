@@ -1,16 +1,33 @@
 import argparse
+import imp
 import json
 
 from pale import extract_endpoints, extract_resources
 from pale.utils import py_doc_trim
 
 
+
 def run_pale_doc():
     parser = argparse.ArgumentParser()
-    parser.add_argument('pale_module')
+    parser.add_argument('path_to_pale_module')
     args = parser.parse_args()
-    print 'hello'
-    print args.pale_module
+    module_path = initify_module_path(args.path_to_pale_module)
+    try:
+        pale_module = imp.load_source('paledoc.loaded_implemntation',
+                module_path)
+    except Exception as e:
+        print e
+        return
+    print generate_json_docs(pale_module)
+
+
+def initify_module_path(path):
+    init = '__init__.py'
+    if path.endswith(init):
+        return path
+    if not path.endswith('/'):
+        path = path + '/'
+    return path + init
 
 
 def generate_json_docs(module):
