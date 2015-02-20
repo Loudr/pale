@@ -28,9 +28,10 @@ class Resource(object):
         if hasattr(self, 'model') and hasattr(self.model, 'default_fields'):
             return self.model.default_fields
 
-        logging.warn("""The base Resource class couldn't find `self.model` or
-        `self.model.default_fields`, so it's returning an empty field set.
-        This is probably not what you want!""")
+        logging.warn("""Couldn't find a `self.model` or a \
+`self.model.default_fields` value on %s, so the base Resource class \
+is returning an empty field set.  This is probably not what you \
+want!""", self.__class__)
         return ()
 
 
@@ -55,6 +56,7 @@ class ResourceList(Resource):
     `index`-style endpoints, where multiple items of the same type should be
     returned as an array.
     """
+    name = "ResourceList"
 
     def __init__(self, doc_string, item_type):
         super(ResourceList, self).__init__(doc_string)
@@ -67,6 +69,7 @@ class ResourceList(Resource):
             raise ValueError("""Failed to initialize ResourceList, since it was
             passed an `item_type` other than an Instance of a Resource or a
             Resource class.""")
+        self.name = "ResourceList of %s" % self.item_resource.name
 
 
     def render_serializable(self, list_of_objs, context):
@@ -88,4 +91,4 @@ class ResourceList(Resource):
 
 class NoContentResource(Resource):
     """An empty resource to represent endpoints that return No-Content."""
-    pass
+    name = "NoContent"

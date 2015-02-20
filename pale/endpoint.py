@@ -235,9 +235,9 @@ class Endpoint(object):
                 # usually there should only be one key and value here
                 dict_val = self.returns.render_serializable(v, self.context)
 
-                # this is where object versioning should be implemented, but one
-                # outstanding question with it is, should this be the responsibility
-                # of the Resource object, or of the endpoint?
+                # this is where object versioning should be implemented, but
+                # one outstanding question with it is, should this be the
+                # responsibility of the Resource object, or of the endpoint?
 
                 # coerced_dict_val = self.returns.versionify(dict_val,
                 #        self.context.api_version)
