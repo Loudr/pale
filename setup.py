@@ -6,7 +6,7 @@ with open(path.join(path.dirname(__file__), 'README.md')) as readme:
 
 setup(
     name="Pale",
-    version="0.1.2",
+    version="0.2.0",
     author="R. Kevin Nelson",
     author_email="kevin@rkn.la",
     description="Pale is a framework for crafting HTTP APIs.",
