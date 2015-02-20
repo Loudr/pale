@@ -30,7 +30,6 @@ class BaseField(object):
     def doc_dict(self):
         """Generate the documentation for this field."""
         doc = {
-            'name': self.name,
             'type': self.value_type,
             'description': self.description,
             'extended_description': self.details
@@ -48,5 +47,5 @@ class ListField(BaseField):
 
     def doc_dict(self):
         doc = super(ListField, self).doc_dict()
-        doc['item_type'] = item_type.name
+        doc['item_type'] = self.item_type.value_type
         return doc

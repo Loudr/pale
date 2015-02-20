@@ -131,7 +131,13 @@ def format_endpoint_returns_doc(endpoint):
 
 
 def document_resource(resource):
-    return {
+    field_doc = { name: field.doc_dict() for name, field \
+            in resource.available_fields.iteritems() }
+
+    res_doc = {
         'name': resource.name,
-        'description': py_doc_trim(resource.__doc__)
+        'description': py_doc_trim(resource.__doc__),
+        'fields': field_doc,
+        'default_fields': resource.default_fields
     }
+    return res_doc

@@ -29,5 +29,6 @@ class RelativeLinksField(BaseField):
         for renderer in self.link_generators:
             name, val = renderer(obj)
             links[name] = val
+        if len(links) == 0:
+            return None
         return links
-
