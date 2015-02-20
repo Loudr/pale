@@ -1,6 +1,7 @@
 from pale.errors import ArgumentError
+from pale.fields import BaseField
 
-class BaseArgument(object):
+class BaseArgument(BaseField):
     """The base class for Pale Arguments.
 
     Arguments in this context are values passed in to Pale Endpoints from the
