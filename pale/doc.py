@@ -8,6 +8,12 @@ from pale.utils import py_doc_trim
 def run_pale_doc():
     parser = argparse.ArgumentParser()
     parser.add_argument('path_to_pale_module')
+    parser.add_argument('-p', '--pretty',
+            help="pretty-print the json output",
+            action='store_true')
+    parser.add_argument('-n', '--print_newlines',
+            help="output json with actual newlines instead of \\n characters",
+            action='store_true')
     args = parser.parse_args()
     module_path = initify_module_path(args.path_to_pale_module)
     try:
@@ -16,7 +22,10 @@ def run_pale_doc():
     except Exception as e:
         print e
         return
-    print generate_json_docs(pale_module)
+    json_docs = generate_json_docs(pale_module, args.pretty)
+    if args.print_newlines:
+        json_docs = json_docs.replace('\\n', '\n')
+    print json_docs
 
 
 def initify_module_path(path):
@@ -28,7 +37,7 @@ def initify_module_path(path):
     return path + init
 
 
-def generate_json_docs(module):
+def generate_json_docs(module, pretty_print=False):
     """Return a JSON string format of a Pale module's documentation.
 
     This string can either be printed out, written to a file, or piped to some
@@ -37,7 +46,15 @@ def generate_json_docs(module):
     This method is a shorthand for calling `generate_doc_dict` and passing
     it into a json serializer.
     """
-    json_str = json.dumps(generate_doc_dict(module))
+    indent = None;
+    separators = (',',':')
+    if pretty_print:
+        indent = 4
+        separators = (',',': ')
+
+    json_str = json.dumps(generate_doc_dict(module),
+            indent=indent,
+            separators=separators)
     return json_str
 
 
