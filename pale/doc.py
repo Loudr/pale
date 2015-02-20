@@ -1,3 +1,4 @@
+import argparse
 import json
 
 from pale import extract_endpoints, extract_resources
@@ -5,7 +6,11 @@ from pale.utils import py_doc_trim
 
 
 def run_pale_doc():
-  print "hello"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('pale_module')
+    args = parser.parse_args()
+    print 'hello'
+    print args.pale_module
 
 
 def generate_json_docs(module):
