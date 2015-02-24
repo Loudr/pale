@@ -1,14 +1,41 @@
 import logging
 import types
 
-class Resource(object):
+from pale.fields import BaseField
+from pale.meta import MetaHasFields
 
-    available_fields = {}
-    default_fields = ()
+class Resource(object):
+    __metaclass__ = MetaHasFields
+
+    _default_fields = ()
 
     @classmethod
-    def all_fields(cls):
-        return tuple(cls.available_fields.keys())
+    def _all_fields(cls):
+        return tuple(cls._fields.keys())
+
+    @classmethod
+    def _fix_up_fields(cls):
+        """Add names to all of the Resource fields.
+
+        This method will get called on class declaration because of
+        Resource's metaclass.  The functionality is based on Google's NDB
+        implementation.
+
+        `Endpoint` does something similar for `arguments`.
+        """
+        cls._fields = {}
+        if cls.__module__ == __name__:
+            return
+        for name in set(dir(cls)):
+            attr = getattr(cls, name, None)
+            if isinstance(attr, BaseField):
+                if name.startswith('_'):
+                    raise TypeError("Resource field %s cannot begin with an "
+                            "underscore.  Underscore attributes are reserved "
+                            "for instance variables that aren't intended to "
+                            "propagate out to the HTTP caller." % name)
+                attr._fix_up(cls, name)
+                cls._fields[attr.name] = attr
 
     def __init__(self, doc_string=None, fields=None):
         """Initialize the resource with the provided doc string and fields.
@@ -17,14 +44,14 @@ class Resource(object):
         resources, but may be none when the resource class is included as a
         part of a ResourceList or ResourceDict.
         """
-        self.description = doc_string
+        self._description = doc_string
         if fields is not None:
-            self.fields_to_render = fields
+            self._fields_to_render = fields
         else:
-            self.fields_to_render = self.default_fields
+            self._fields_to_render = self._default_fields
 
 
-    def render_serializable(self, obj, context):
+    def _render_serializable(self, obj, context):
         """Renders a JSON-serializable version of the object passed in.
         Usually this means turning a Python object into a dict, but sometimes
         it might make sense to render a list, or a string, or a tuple.
@@ -32,7 +59,7 @@ class Resource(object):
         In this base class, we provide a default implementation that assumes
         some things about your application architecture, namely, that your
         models specified in `underlying_model` have properties with the same
-        name as all of the `available_fields` that you've specified on a
+        name as all of the `_fields` that you've specified on a
         resource, and that all of those fields are public.
 
         Obviously this may not be appropriate for your app, so your
@@ -41,13 +68,13 @@ class Resource(object):
 
         Do what you need to do.  The world is your oyster.
         """
-        logging.info("""Careful, you're calling .render_serializable on the
+        logging.info("""Careful, you're calling ._render_serializable on the
         base resource, which is probably not what you actually want to be
         doing!""")
         output = {}
-        if self.fields_to_render is None:
+        if self._fields_to_render is None:
             return output
-        for field in self.fields_to_render:
+        for field in self._fields_to_render:
             output[field] = getattr(obj, field)
         return output
 
@@ -59,39 +86,40 @@ class ResourceList(Resource):
     `index`-style endpoints, where multiple items of the same type should be
     returned as an array.
     """
-    name = "ResourceList"
+    _description = "A generic list of Resources"
 
     def __init__(self, doc_string, item_type):
         super(ResourceList, self).__init__(doc_string)
 
         if isinstance(item_type, Resource):
-            self.item_resource = item_type
+            self._item_resource = item_type
         if isinstance(item_type, types.ObjectType):
-            self.item_resource = item_type()
+            self._item_resource = item_type()
         else:
-            raise ValueError("""Failed to initialize ResourceList, since it was
-            passed an `item_type` other than an Instance of a Resource or a
-            Resource class.""")
-        self.name = "ResourceList of %s" % self.item_resource.name
+            raise ValueError("""Failed to initialize ResourceList, since it
+            was passed an `item_type` other than an Instance of a Resource or
+            a Resource class.""")
+        self._description = "A list of %s Resources" % self._item_resource.name
 
 
-    def render_serializable(self, list_of_objs, context):
+    def _render_serializable(self, list_of_objs, context):
         """Iterates through the passed in `list_of_objs` and calls the
-        `render_serializable` method of each object's Resource type.
+        `_render_serializable` method of each object's Resource type.
 
-        This will probably support heterogeneous types at some point (hence the
-        `item_types` initialization, as opposed to just item_type), but that
-        might be better suited to something else like a ResourceDict.
+        This will probably support heterogeneous types at some point (hence
+        the `item_types` initialization, as opposed to just item_type), but
+        that might be better suited to something else like a ResourceDict.
 
-        This method returns a JSON-serializable list of JSON-serializable dicts.
+        This method returns a JSON-serializable list of JSON-serializable
+        dicts.
         """
         output = []
         for obj in list_of_objs:
-            item = self.item_resource.render_serializable(obj, context)
+            item = self._item_resource._render_serializable(obj, context)
             output.append(item)
         return output
 
 
 class NoContentResource(Resource):
     """An empty resource to represent endpoints that return No-Content."""
-    name = "NoContent"
+    _description = "The shell of a Resource where content used to be"

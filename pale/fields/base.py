@@ -18,6 +18,20 @@ class BaseField(object):
         self.description = description
         self.details = details
 
+    def _fix_up(self, cls, code_name):
+        """Internal helper to name the field after its variable.
+
+        This is called by _fix_up_fields, which is called by the MetaHasFields
+        metaclass when finishing the construction of a Resource subclass.
+
+        The `code_name` passed in is the name of the python attribute that
+        the Field has been assigned to in the resource.
+
+        Note that each BaseField instance must only be assigned to at most
+        one Resource class attribute.
+        """
+        self.name = code_name
+
 
     def render(self, obj, name):
         """The default field renderer.
@@ -25,7 +39,6 @@ class BaseField(object):
         This basic renderer assumes that the object has an attribute with the
         same name as the field."""
         return getattr(obj, name)
-
 
     def doc_dict(self):
         """Generate the documentation for this field."""
