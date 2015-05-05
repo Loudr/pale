@@ -62,3 +62,20 @@ class ListField(BaseField):
         doc = super(ListField, self).doc_dict()
         doc['item_type'] = self.item_type.value_type
         return doc
+
+
+class ResourceField(BaseField):
+    """A field that contains a rendered version of a different resource."""
+    value_type = 'resource'
+
+    def __init__(self, description, details=None, resource_type=None):
+        self.description = description
+        self.details = details
+        self.resource_type = resource_type
+
+    def doc_dict(self):
+        doc = super(ResourceField, self).doc_dict()
+        doc['resource_type'] = self.resource_type.__name__
+
+    # This field is incomplete, and probably needs a `render` method that
+    # renders the whole nested resource
