@@ -123,3 +123,19 @@ class ResourceList(Resource):
 class NoContentResource(Resource):
     """An empty resource to represent endpoints that return No-Content."""
     _description = "The shell of a Resource where content used to be"
+
+
+class DebugResource(Resource):
+    """A schema-less resource to help with debugging.
+
+    This is one of the most dangerous Pale resource types, because it affords
+    you the opportunity to _not define your resource_.  You should only use
+    this when you're trying to define your resource fields, or on endpoints
+    that you might not need to keep for the long term.
+    """
+
+    def _render_serializable(self, obj, context):
+        import pdb; pdb.set_trace()
+
+        output = {}
+        return output
