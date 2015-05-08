@@ -46,13 +46,13 @@ def bind_blueprint(pale_api_module, flask_blueprint):
     endpoints = pale.extract_endpoints(pale_api_module)
 
     for endpoint in endpoints:
-        endpoint.set_response_class(RESPONSE_CLASS)
-        method = [endpoint.method]
-        name = endpoint.name
-        handler = endpoint.execute
+        endpoint._set_response_class(RESPONSE_CLASS)
+        method = [endpoint._http_method]
+        name = endpoint._route_name
+        handler = endpoint._execute
 
         flask_blueprint.add_url_rule(
-                endpoint.uri,
+                endpoint._uri,
                 name,
                 view_func=ContextualizedHandler(handler),
                 methods=method)

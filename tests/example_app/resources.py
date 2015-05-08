@@ -1,13 +1,47 @@
 import datetime
 
 from pale import Resource
+from pale.fields import IntegerField, StringField
 
 from tests.example_app.models import DateTimeModel
 
 class DateTimeResource(Resource):
     """A simple datetime resource used for testing Pale Resources."""
-    model = DateTimeModel
-    name = "DateTime"
+    value_type = 'DateTime Resource'
+    underlying_model = DateTimeModel
+
+    available_fields = [
+        IntegerField('year',
+            'The year of the returned DateTime'),
+
+        IntegerField('month',
+            'A month, between 1 and 12'),
+
+        IntegerField('day',
+            'The date of the month'),
+
+        IntegerField('hours',
+            'The hours time, between 0 and 23'),
+
+        IntegerField('minutes',
+            'The minutes, between 0 and 59'),
+
+        IntegerField('seconds',
+            'The seconds, between 0 and 59'),
+
+        StringField('iso',
+            "The DateTime's ISO representation"),
+
+        StringField('name',
+            "Your DateTime's name",
+            "This value will be `null` on most DateTimes.  It's only set when\
+the DateTime is created with `/parse_time/` and a `name` is passed in.")
+    ]
+
+    default_fields = ('year',
+                      'month',
+                      'day',
+                      'iso')
 
     def render_serializable(self, instance, context):
         """Renders the `instance` of datetime for the context provided.
