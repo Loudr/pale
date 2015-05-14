@@ -161,14 +161,14 @@ class Endpoint(object):
             else:
                 message = "You don't have permission to do that."
             err = APIError.Forbidden(message)
-            return err.response
+            return self._response_class(*err.response)
         except ArgumentError as e:
             err = APIError.UnprocessableEntity(e.message)
-            return err.response
+            return self._response_class(*err.response)
         except APIError as e:
-            return e.response
+            return self._response_class(*e.response)
         except PaleRaisedResponse as r:
-            return r.response
+            return self._response_class(*r.response)
         except Exception as e:
             logging.error(e.message)
             import traceback
