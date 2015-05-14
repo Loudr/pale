@@ -111,16 +111,16 @@ class ListArgument(BaseArgument):
 
         Returns the input list if it's valid, or raises an ArgumentError if
         it's not."""
+        output_list = []
         for item in input_list:
-            # we're not going to transform the list here, just make sure that
-            # none of the items throw ArgumentErrors
+            valid = self.list_item_type.validate(item, self.item_name)
+            output_list.append(valid)
 
-            self.list_item_type.validate(item, self.item_name)
             # this might lead to confusing error messages.  tbh, we need to
             # figure out a better way to do validation and error handling here,
             # but i'm brute forcing this a bit so that we have something
             # workable
-        return input_list
+        return output_list
 
 
     def validate(self, item, item_name):
@@ -136,9 +136,9 @@ class ListArgument(BaseArgument):
         if item is None:
             return item
 
-        validated_list = list(item)
+        item_list = list(item)
 
         if self.list_item_type != "*":
-            self.validate_items(validated_list)
+            validated_list = self.validate_items(item_list)
 
         return validated_list
