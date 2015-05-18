@@ -33,12 +33,12 @@ class IntegerArgument(BaseArgument):
                     "You must provide a value between %d and %d" % (
                         self.min_value, self.max_value))
 
-        if self.min_value is not None and item < min_value:
+        if self.min_value is not None and item < self.min_value:
             raise ArgumentError(item_name,
                     "You must provide a value greater than or equal to %d" % (
                         self.min_value))
 
-        if self.max_value is not None and item > max_value:
+        if self.max_value is not None and item > self.max_value:
             raise ArgumentError(item_name,
                     "You must provide a value less than or equal to %d" % (
                         self.max_value))
