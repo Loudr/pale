@@ -3,7 +3,7 @@ import datetime
 from pale import Endpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
 from tests.example_app.models import DateTimeModel
-from tests.example_app.resources import DateTimeResource
+from tests.example_app.api.resources import DateTimeResource
 
 
 class CurrentTimeEndpoint(Endpoint):
@@ -15,7 +15,7 @@ class CurrentTimeEndpoint(Endpoint):
     _returns = DateTimeResource(
         "The DateTimeResource representation of the current time on the "
         "server.",
-        fields=DateTimeModel.all_fields)
+        fields=DateTimeResource._all_fields())
 
     def _handle(self, context):
         now = DateTimeModel(datetime.datetime.utcnow())
@@ -65,7 +65,6 @@ class ParseTimeEndpoint(Endpoint):
         now = DateTimeModel(datetime.datetime.utcnow())
 
         now.update_date(
-
                 # year has a default, so it will always be present
                 context.args['year'],
 

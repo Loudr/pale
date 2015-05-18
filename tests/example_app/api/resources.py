@@ -33,7 +33,7 @@ class DateTimeResource(Resource):
                        'iso')
 
 
-    def render_serializable(self, instance, context):
+    def _render_serializable(self, instance, context):
         """Render a datetime for the context provided"""
         if not isinstance(instance, DateTimeModel):
             """This check is here for illustration purposes, but isn't
@@ -43,9 +43,7 @@ class DateTimeResource(Resource):
                 "something other than a `datetime.datetime` to the "
                 "DateTimeResource serializer."))
 
-        # call the default Pale renderer based on the default_fields of the
-        # model set on line 9
-        output = super(DateTimeResource, self).render_serializable(
+        output = super(DateTimeResource, self)._render_serializable(
                 instance, context)
 
         # add fields based on the instance state

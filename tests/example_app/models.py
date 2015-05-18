@@ -1,3 +1,6 @@
+import datetime
+
+
 class DateTimeModel(object):
     default_fields = ('year',
                     'month',
@@ -18,11 +21,25 @@ class DateTimeModel(object):
         self.include_time = False
         self.name = None
 
+
     def update_date(self, year, month, day=None):
-        self.timestamp.year = year
-        self.timestamp.month = month
-        if day is not None:
-            self.timestamp.day = day
+        # datetime.datetime is immutable, so create a new one with the
+        # updated values
+        if day is None:
+            day = self.timestamp.day
+
+        new_timestamp = datetime.datetime(
+                year=year,
+                month=month,
+                day=day,
+                hour=self.timestamp.hour,
+                minute=self.timestamp.minute,
+                second=self.timestamp.second,
+                microsecond=self.timestamp.microsecond,
+                tzinfo=self.timestamp.tzinfo)
+
+        self.timestamp = new_timestamp
+
 
     def set_include_time(self, should_include):
         self.include_time = should_include
