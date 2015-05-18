@@ -3,7 +3,7 @@ import datetime
 from pale import Endpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
 from tests.example_app.models import DateTimeModel
-from tests.example_app.resources import DateTimeResource
+from tests.example_app.api.resources import DateTimeResource
 
 
 class CurrentTimeEndpoint(Endpoint):

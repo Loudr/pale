@@ -6,9 +6,9 @@ from pale.doc import generate_doc_dict, generate_json_docs
 class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
-        from tests import example_app
-        self.example_app = example_app
-        self.doc_dict = generate_doc_dict(example_app)
+        from tests.example_app import api as example_pale_app
+        self.example_app = example_pale_app
+        self.doc_dict = generate_doc_dict(self.example_app)
 
 
     def test_doc_dict_root_structure(self):
