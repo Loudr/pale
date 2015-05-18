@@ -65,7 +65,6 @@ class ParseTimeEndpoint(Endpoint):
         now = DateTimeModel(datetime.datetime.utcnow())
 
         now.update_date(
-
                 # year has a default, so it will always be present
                 context.args['year'],
 
