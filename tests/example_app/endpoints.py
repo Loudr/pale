@@ -5,18 +5,19 @@ from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
 from tests.example_app.models import DateTimeModel
 from tests.example_app.resources import DateTimeResource
 
+
 class CurrentTimeEndpoint(Endpoint):
     """An API endpoint to get the current time."""
-    name = "current_time"
-    method = "GET"
-    uri = "/current_time/"
+    _http_method = "GET"
+    _uri = "/current_time/"
+    _route_name = "current_time"
 
-    returns = DateTimeResource(
-        """The DateTimeResource representation of the current time on the
-        server.""",
+    _returns = DateTimeResource(
+        "The DateTimeResource representation of the current time on the "
+        "server.",
         fields=DateTimeModel.all_fields)
 
-    def handle(self, context):
+    def _handle(self, context):
         now = DateTimeModel(datetime.datetime.utcnow())
         return {'time': now}
 
@@ -25,41 +26,42 @@ class ParseTimeEndpoint(Endpoint):
     """Parses some passed in parameters to generate a corresponding
     DateTimeResource.
     """
-    name = "parse_time"
-    method = "POST"
-    uri = "/parse_time/"
+    _http_method = "POST"
+    _uri = "/parse_time/"
+    _route_name = "parse_time"
 
-    arguments = {
-        'year': IntegerArgument("Set the year of the returned datetime",
-            default=2015),
 
-        'month': IntegerArgument("Set the month of the returned datetime",
+    _returns = DateTimeResource(
+            "The DateTimeResource corresponding to the timing "
+            "information sent in by the requester.")
+
+
+    year = IntegerArgument("Set the year of the returned datetime",
+            default=2015)
+
+    month = IntegerArgument("Set the month of the returned datetime",
             required=True,
             min_value=1,
-            max_value=12),
+            max_value=12)
 
-        'day': IntegerArgument("Set the day of the returned datetime"),
+    day = IntegerArgument("Set the day of the returned datetime")
 
-        'name': StringArgument("The name for your datetime",
-            details="""You can give your time a name, which will be
-            returned back to you in the response, as the field `name`.
-            If you omit this input parameter, your response won't include
-            a `name`.""",
+    name = StringArgument("The name for your datetime",
+            details="You can give your time a name, which will be "
+            "returned back to you in the response, as the field `name`. "
+            "If you omit this input parameter, your response won't "
+            "include a `name`.",
             min_length=3,
-            max_length=20),
+            max_length=20)
 
-        'include_time': BooleanArgument("Include the time in the output?",
-            details="""If present, the response will include JSON fields for
-            the current time, including `hours`, `minutes`, and `seconds`.""",
+    includes_time = BooleanArgument("Include the time in the output?",
+            details="If present, the response will include JSON fields "
+            "for the current time, including `hours`, `minutes`, and "
+            "`seconds`.",
             default=False)
-    }
-
-    returns = DateTimeResource(
-            """The DateTimeResource corresponding to the timing information
-            sent in by the requester.""")
 
 
-    def handle(self, context):
+    def _handle(self, context):
         now = DateTimeModel(datetime.datetime.utcnow())
 
         now.update_date(
