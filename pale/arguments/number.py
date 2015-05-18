@@ -1,3 +1,5 @@
+from pale.errors.validation import ArgumentError
+
 from .base import BaseArgument
 
 class IntegerArgument(BaseArgument):
