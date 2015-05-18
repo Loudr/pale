@@ -23,7 +23,9 @@ def pale_webapp2_request_handler_generator(pale_endpoint):
     return cls
 
 
-def bind_pale_to_webapp2(pale_app_module, webapp_wsgiapplication):
+def bind_pale_to_webapp2(pale_app_module,
+        webapp_wsgiapplication,
+        route_prefix=None):
     """Binds a Pale API implementation to a webapp2 WSGIApplication"""
 
     if not isinstance(webapp_wsgiapplication, webapp2.WSGIApplication):
@@ -49,8 +51,13 @@ def bind_pale_to_webapp2(pale_app_module, webapp_wsgiapplication):
 
         logging.info("adding endpoint %s to webapp!" % name)
         req_handler = pale_webapp2_request_handler_generator(endpoint)
+
+        route_uri = endpoint._uri
+        if route_prefix is not None:
+            route_uri = "%s%s" % (route_prefix, route_uri)
+
         route = webapp2.Route(
-                endpoint._uri,
+                route_uri,
                 handler=req_handler,
                 name=name,
                 handler_method='pale_handler',

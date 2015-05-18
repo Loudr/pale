@@ -3,19 +3,14 @@ import unittest
 from webtest import TestApp
 
 from tests.example_app.api.resources import DateTimeResource
-from tests.example_app.flask_app import create_pale_flask_app
 
 
-class FlaskAppTests(unittest.TestCase):
+class FlaskAdapterTests(unittest.TestCase):
 
     def setUp(self):
-
-        # note that `create_pale_flask_app` applies a prefix of /api to
-        # the uris specified in the Pale endpoints.
-
+        from tests.example_app.flask_app import create_pale_flask_app
         self.flask_app = create_pale_flask_app()
         self.app = TestApp(self.flask_app)
-
 
     def test_successful_get_without_params(self):
         resp = self.app.get('/api/current_time/')
