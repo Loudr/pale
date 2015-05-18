@@ -42,7 +42,7 @@ class FlaskAppTests(unittest.TestCase):
             val = returned_time.pop(f)
             # don't check the val for now
         # make sure there's nothing left in the dict
-        self.assertTrue(len(returned_time.keys()), 0)
+        self.assertEqual(len(returned_time.keys()), 0)
 
 
     def test_successful_post_with_params(self):
