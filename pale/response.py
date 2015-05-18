@@ -3,7 +3,7 @@ class PaleBaseResponse(object):
     def response(self):
         http_status = getattr(self, 'http_status_code', 418)
         response_body = getattr(self, 'response_body', "i am a teapot")
-        headers = getattr(self, 'headers', {})
+        headers = getattr(self, 'headers', None)
         return (response_body, http_status, headers)
 
 class PaleRaisedResponse(PaleBaseResponse, Exception):
