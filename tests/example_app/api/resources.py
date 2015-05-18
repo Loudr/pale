@@ -7,46 +7,34 @@ from tests.example_app.models import DateTimeModel
 
 class DateTimeResource(Resource):
     """A simple datetime resource used for testing Pale Resources."""
-    value_type = 'DateTime Resource'
-    underlying_model = DateTimeModel
+    _value_type = 'DateTime Resource'
+    _underlying_model = DateTimeModel
 
-    available_fields = [
-        IntegerField('year',
-            'The year of the returned DateTime'),
 
-        IntegerField('month',
-            'A month, between 1 and 12'),
+    year = IntegerField("The year of the returned DateTime")
+    month = IntegerField("A month, between 1 and 12")
+    day = IntegerField("The date of the month")
 
-        IntegerField('day',
-            'The date of the month'),
+    hours = IntegerField("The hours time, between 0 and 23")
+    minutes = IntegerField("The minutes, between 0 and 59")
+    seconds = IntegerField("The seconds, between 0 and 59")
 
-        IntegerField('hours',
-            'The hours time, between 0 and 23'),
+    iso = StringField("The DateTime's ISO representation")
 
-        IntegerField('minutes',
-            'The minutes, between 0 and 59'),
+    name = StringField("Your DateTime's name",
+            details="This value will be `null` on most DateTimes.  It's "
+            "only set when the DateTime is created with `/parse_time/` "
+            "and a `name` is passed in.")
 
-        IntegerField('seconds',
-            'The seconds, between 0 and 59'),
 
-        StringField('iso',
-            "The DateTime's ISO representation"),
+    _default_fields = ('year',
+                       'month',
+                       'day',
+                       'iso')
 
-        StringField('name',
-            "Your DateTime's name",
-            "This value will be `null` on most DateTimes.  It's only set when\
-the DateTime is created with `/parse_time/` and a `name` is passed in.")
-    ]
 
-    default_fields = ('year',
-                      'month',
-                      'day',
-                      'iso')
-
-    def render_serializable(self, instance, context):
-        """Renders the `instance` of datetime for the context provided.
-        """
-
+    def _render_serializable(self, instance, context):
+        """Render a datetime for the context provided"""
         if not isinstance(instance, DateTimeModel):
             """This check is here for illustration purposes, but isn't
             strictly required, as long as you make sure you send the correct
@@ -55,9 +43,7 @@ the DateTime is created with `/parse_time/` and a `name` is passed in.")
                 "something other than a `datetime.datetime` to the "
                 "DateTimeResource serializer."))
 
-        # call the default Pale renderer based on the default_fields of the
-        # model set on line 9
-        output = super(DateTimeResource, self).render_serializable(
+        output = super(DateTimeResource, self)._render_serializable(
                 instance, context)
 
         # add fields based on the instance state

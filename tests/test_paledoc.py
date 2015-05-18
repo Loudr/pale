@@ -6,9 +6,9 @@ from pale.doc import generate_doc_dict, generate_json_docs
 class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
-        from tests import example_app
-        self.example_app = example_app
-        self.doc_dict = generate_doc_dict(example_app)
+        from tests.example_app import api as example_pale_app
+        self.example_app = example_pale_app
+        self.doc_dict = generate_doc_dict(self.example_app)
 
 
     def test_doc_dict_root_structure(self):
@@ -21,7 +21,12 @@ class PaleDocTests(unittest.TestCase):
 
     def test_doc_json(self):
         json_docs = generate_json_docs(self.example_app)
-        json_dict = json.loads(json_docs)
+
+        # use yaml's safe_load here, because it returns strings instead
+        # of unicode, and we know that our test data doesn't have any
+        # strictly-unicode characters.
+        import yaml
+        json_dict = yaml.safe_load(json_docs)
         self.assertDictEqual(json_dict, self.doc_dict)
 
 
@@ -35,12 +40,12 @@ class PaleDocTests(unittest.TestCase):
 
         self.assertEqual(current_time_doc['uri'], '/current_time/')
         self.assertEqual(current_time_doc['http_method'], 'GET')
-        self.assertEqual(current_time_doc['arguments'], None)
+        self.assertEqual(current_time_doc['arguments'], {})
 
         return_doc = current_time_doc['returns']
         self.assertEqual(return_doc['description'],
                 "The DateTimeResource representation of the current time on the server.")
-        self.assertEqual(return_doc['resource_name'], 'DateTime')
+        self.assertEqual(return_doc['resource_name'], 'DateTime Resource')
         self.assertEqual(return_doc['resource_type'], 'DateTimeResource')
 
 
@@ -58,7 +63,7 @@ class PaleDocTests(unittest.TestCase):
         return_doc = parse_time_doc['returns']
         self.assertEqual(return_doc['description'],
                 "The DateTimeResource corresponding to the timing information sent in by the requester.")
-        self.assertEqual(return_doc['resource_name'], 'DateTime')
+        self.assertEqual(return_doc['resource_name'], 'DateTime Resource')
         self.assertEqual(return_doc['resource_type'], 'DateTimeResource')
 
         args = parse_time_doc['arguments']
@@ -128,6 +133,6 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(len(resources), 1)
 
         resource = resources[0]
-        self.assertEqual(resource['name'], 'DateTime')
+        self.assertEqual(resource['name'], 'DateTime Resource')
         self.assertEqual(resource['description'],
                 'A simple datetime resource used for testing Pale Resources.')

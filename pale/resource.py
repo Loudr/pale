@@ -135,7 +135,5 @@ class DebugResource(Resource):
     """
 
     def _render_serializable(self, obj, context):
-        import pdb; pdb.set_trace()
-
         output = {}
         return output
