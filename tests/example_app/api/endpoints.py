@@ -15,7 +15,7 @@ class CurrentTimeEndpoint(Endpoint):
     _returns = DateTimeResource(
         "The DateTimeResource representation of the current time on the "
         "server.",
-        fields=DateTimeModel.all_fields)
+        fields=DateTimeResource._all_fields())
 
     def _handle(self, context):
         now = DateTimeModel(datetime.datetime.utcnow())

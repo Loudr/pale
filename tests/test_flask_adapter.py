@@ -33,15 +33,15 @@ class FlaskAppTests(unittest.TestCase):
         # in tests.example_app.api.resources.py
         returned_time = resp.json_body['time'].copy()
 
-        # no other fields were specified, so we should get only the
-        # default fields
-        expected_fields = DateTimeResource._default_fields
+        # the endpoint specifies `fields=DateTimeResource._all_fields()`
+        # so, we should expect to find all of them
+        expected_fields = DateTimeResource._all_fields()
 
         for f in expected_fields:
             self.assertIn(f, returned_time)
             val = returned_time.pop(f)
             # don't check the val for now
-        # make sure there's nothing left in the dict
+        # make sure there's extraneous left in the dict
         self.assertEqual(len(returned_time.keys()), 0)
 
 
