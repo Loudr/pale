@@ -9,26 +9,23 @@ class FieldsTests(unittest.TestCase):
 
 
     def test_create_base_field(self):
-        field = BaseField('user_id',
-                          'integer',
-                          'This is a test field',
-                          'This is where I put special notes about the field')
-        self.assertEqual(field.name, 'user_id')
+        field = BaseField("integer",
+                "This is a test field",
+                "This is where I put special notes about the field")
+
         self.assertEqual(field.value_type, 'integer')
         self.assertEqual(field.description, 'This is a test field')
         self.assertEqual(field.details,
                 'This is where I put special notes about the field')
 
         doc = field.doc_dict()
-        self.assertEqual(doc['name'], 'user_id')
         self.assertEqual(doc['type'], 'integer')
         self.assertEqual(doc['description'], 'This is a test field')
         self.assertEqual(doc['extended_description'],
                 'This is where I put special notes about the field')
 
         # test details default
-        field = BaseField('user_id',
-                'integer',
+        field = BaseField('integer',
                 'This is a test field')
         self.assertIsNone(field.details)
         doc = field.doc_dict()
