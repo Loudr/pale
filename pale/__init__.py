@@ -44,6 +44,6 @@ def extract_resources(api_module):
     currently used for anything in production.
     """
     endpoints = extract_endpoints(api_module)
-    resource_classes = [ e.returns.__class__ for e in endpoints ]
+    resource_classes = [ e._returns.__class__ for e in endpoints ]
 
     return list(set(resource_classes))

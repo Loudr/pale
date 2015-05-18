@@ -46,13 +46,14 @@ def generate_json_docs(module, pretty_print=False):
     This method is a shorthand for calling `generate_doc_dict` and passing
     it into a json serializer.
     """
-    indent = None;
-    separators = (',',':')
+    indent = None
+    separators = (',', ':')
     if pretty_print:
         indent = 4
-        separators = (',',': ')
+        separators = (',', ': ')
 
-    json_str = json.dumps(generate_doc_dict(module),
+    module_doc_dict = generate_doc_dict(module)
+    json_str = json.dumps(module_doc_dict,
             indent=indent,
             separators=separators)
     return json_str
@@ -72,7 +73,7 @@ def generate_doc_dict(module):
                 `pale.ImplementationModule`.""")
 
     module_endpoints = extract_endpoints(module)
-    ep_doc = { ep.name: document_endpoint(ep) for ep in module_endpoints }
+    ep_doc = { ep._route_name: document_endpoint(ep) for ep in module_endpoints }
 
     module_resources = extract_resources(module)
     res_doc = [document_resource(r) for r in module_resources]
@@ -85,9 +86,9 @@ def document_endpoint(endpoint):
     """Extract the full documentation dictionary from the endpoint."""
     descr = py_doc_trim(endpoint.__doc__)
     docs = {
-        'name': endpoint.name,
-        'http_method': endpoint.method,
-        'uri': endpoint.uri,
+        'name': endpoint._route_name,
+        'http_method': endpoint._http_method,
+        'uri': endpoint._uri,
         'description': descr,
         'arguments': extract_endpoint_arguments(endpoint),
         'returns': format_endpoint_returns_doc(endpoint)
@@ -98,7 +99,7 @@ def document_endpoint(endpoint):
 def extract_endpoint_arguments(endpoint):
     """Extract the argument documentation from the endpoint."""
 
-    ep_args = endpoint.arguments
+    ep_args = endpoint._arguments
     if ep_args is None:
         return None
 
@@ -122,22 +123,22 @@ def format_endpoint_argument_doc(argument):
 
 def format_endpoint_returns_doc(endpoint):
     """Return documentation about the resource that an endpoint returns."""
-    description = py_doc_trim(endpoint.returns.description)
+    description = py_doc_trim(endpoint._returns._description)
     return {
         'description': description,
-        'resource_name': endpoint.returns.name,
-        'resource_type': endpoint.returns.__class__.__name__
+        'resource_name': endpoint._returns._value_type,
+        'resource_type': endpoint._returns.__class__.__name__
     }
 
 
 def document_resource(resource):
     field_doc = { name: field.doc_dict() for name, field \
-            in resource.available_fields.iteritems() }
+            in resource._fields.iteritems() }
 
     res_doc = {
-        'name': resource.name,
+        'name': resource._value_type,
         'description': py_doc_trim(resource.__doc__),
         'fields': field_doc,
-        'default_fields': resource.default_fields
+        'default_fields': list(resource._default_fields)
     }
     return res_doc

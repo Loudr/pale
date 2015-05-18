@@ -54,7 +54,7 @@ class ParseTimeEndpoint(Endpoint):
             min_length=3,
             max_length=20)
 
-    includes_time = BooleanArgument("Include the time in the output?",
+    include_time = BooleanArgument("Include the time in the output?",
             details="If present, the response will include JSON fields "
             "for the current time, including `hours`, `minutes`, and "
             "`seconds`.",
