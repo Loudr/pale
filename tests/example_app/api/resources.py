@@ -39,8 +39,8 @@ class DateTimeResource(Resource):
             """This check is here for illustration purposes, but isn't
             strictly required, as long as you make sure you send the correct
             objects to their correct serializers."""
-            raise ValueError(("You broke the test app by trying to render "
-                "something other than a `datetime.datetime` to the "
+            raise ValueError(("You broke the test app by trying to pass "
+                "something other than a `DateTimeModel` to the "
                 "DateTimeResource serializer."))
 
         output = super(DateTimeResource, self)._render_serializable(
