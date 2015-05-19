@@ -33,11 +33,17 @@ class BaseField(object):
         self.name = code_name
 
 
-    def render(self, obj, name):
+    def render(self, obj, name, context):
         """The default field renderer.
 
-        This basic renderer assumes that the object has an attribute with the
-        same name as the field."""
+        This basic renderer assumes that the object has an attribute with
+        the same name as the field.
+
+        The renderer is also passed the context so that it can be
+        propagated to the `_render_serializable` method of nested
+        resources (or, for example, if you decide to implement attribute
+        hiding at the field level instead of at the object level).
+        """
         return getattr(obj, name)
 
     def doc_dict(self):

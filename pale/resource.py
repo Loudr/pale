@@ -77,7 +77,8 @@ class Resource(object):
         if self._fields_to_render is None:
             return output
         for field in self._fields_to_render:
-            output[field] = getattr(obj, field)
+            renderer = self._fields[field].render
+            output[field] = renderer(obj, field, context)
         return output
 
 
