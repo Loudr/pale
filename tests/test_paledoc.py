@@ -132,12 +132,12 @@ class PaleDocTests(unittest.TestCase):
         # we defined two resources in the example app
         self.assertEqual(len(resources), 2)
 
-        resource = resources[0]
+        resource = resources['DateTime Resource']
         self.assertEqual(resource['name'], 'DateTime Resource')
         self.assertEqual(resource['description'],
                 'A simple datetime resource used for testing Pale Resources.')
 
-        resource = resources[1]
+        resource = resources['DateTime Range Resource']
         self.assertEqual(resource['name'], 'DateTime Range Resource')
         self.assertEqual(resource['description'],
                 'A time range that returns some nested resources')
