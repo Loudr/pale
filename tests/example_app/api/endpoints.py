@@ -9,7 +9,7 @@ from tests.example_app.api.resources import DateTimeResource
 class CurrentTimeEndpoint(Endpoint):
     """An API endpoint to get the current time."""
     _http_method = "GET"
-    _uri = "/current_time/"
+    _uri = "/time/current"
     _route_name = "current_time"
 
     _returns = DateTimeResource(
@@ -27,7 +27,7 @@ class ParseTimeEndpoint(Endpoint):
     DateTimeResource.
     """
     _http_method = "POST"
-    _uri = "/parse_time/"
+    _uri = "/time/parse"
     _route_name = "parse_time"
 
 
