@@ -7,6 +7,8 @@ from pale.meta import MetaHasFields
 class Resource(object):
     __metaclass__ = MetaHasFields
 
+    _value_type = "Base Resource"
+
     _default_fields = ()
 
     @classmethod

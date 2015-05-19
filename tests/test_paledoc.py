@@ -32,13 +32,13 @@ class PaleDocTests(unittest.TestCase):
 
     def test_endpoint_without_args_docs(self):
         endpoints = self.doc_dict['endpoints']
-        # we defined two endpoints in the example app
-        self.assertEqual(len(endpoints), 2)
+        # we defined three endpoints in the example app
+        self.assertEqual(len(endpoints), 3)
 
         # the current time endpoint
         current_time_doc = endpoints['current_time']
 
-        self.assertEqual(current_time_doc['uri'], '/current_time/')
+        self.assertEqual(current_time_doc['uri'], '/time/current')
         self.assertEqual(current_time_doc['http_method'], 'GET')
         self.assertEqual(current_time_doc['arguments'], {})
 
@@ -51,13 +51,13 @@ class PaleDocTests(unittest.TestCase):
 
     def test_endpoint_with_args_docs(self):
         endpoints = self.doc_dict['endpoints']
-        # we defined two endpoints in the example app
-        self.assertEqual(len(endpoints), 2)
+        # we defined three endpoints in the example app
+        self.assertEqual(len(endpoints), 3)
 
         # the current time endpoint
         parse_time_doc = endpoints['parse_time']
 
-        self.assertEqual(parse_time_doc['uri'], '/parse_time/')
+        self.assertEqual(parse_time_doc['uri'], '/time/parse')
         self.assertEqual(parse_time_doc['http_method'], 'POST')
 
         return_doc = parse_time_doc['returns']
@@ -129,10 +129,15 @@ class PaleDocTests(unittest.TestCase):
 
     def test_resource_doc(self):
         resources = self.doc_dict['resources']
-        # we only defined one resource in the example app
-        self.assertEqual(len(resources), 1)
+        # we defined two resources in the example app
+        self.assertEqual(len(resources), 2)
 
         resource = resources[0]
         self.assertEqual(resource['name'], 'DateTime Resource')
         self.assertEqual(resource['description'],
                 'A simple datetime resource used for testing Pale Resources.')
+
+        resource = resources[1]
+        self.assertEqual(resource['name'], 'DateTime Range Resource')
+        self.assertEqual(resource['description'],
+                'A time range that returns some nested resources')

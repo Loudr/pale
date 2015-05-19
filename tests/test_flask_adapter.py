@@ -13,7 +13,7 @@ class FlaskAdapterTests(unittest.TestCase):
         self.app = TestApp(self.flask_app)
 
     def test_successful_get_without_params(self):
-        resp = self.app.get('/api/current_time/')
+        resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
 
         # the 'time' value was set in the endpoint handler
@@ -38,7 +38,7 @@ class FlaskAdapterTests(unittest.TestCase):
     def test_successful_post_with_required_params(self):
         # month is required in the endpoint definition, so we must pass
         # it in here
-        resp = self.app.post('/api/parse_time/', {'month': 2})
+        resp = self.app.post('/api/time/parse', {'month': 2})
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn('time', resp.json_body)
@@ -56,6 +56,6 @@ class FlaskAdapterTests(unittest.TestCase):
 
 
     def test_unsuccessful_post_missing_required_params(self):
-        resp = self.app.post('/api/parse_time/', status=422)
+        resp = self.app.post('/api/time/parse', status=422)
 
         self.assertIn('error', resp.json_body)

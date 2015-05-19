@@ -1,7 +1,7 @@
 import datetime
 
 from pale import Resource
-from pale.fields import IntegerField, StringField
+from pale.fields import IntegerField, ResourceField, StringField
 
 from tests.example_app.models import DateTimeModel, DateTimeRangeModel
 
@@ -74,11 +74,12 @@ class DateTimeRangeResource(Resource):
     duration_microseconds = IntegerField(
             "The range's duration in microseconds.")
 
-    start = ResourceField(DateTimeResource,
-            "The starting datetime of the range.")
+    start = ResourceField("The starting datetime of the range.",
+            resource_type=DateTimeResource)
 
-    end = ResourceField(DateTimeResource,
+    end = ResourceField(
             "The ending datetime of the range.",
+            resource_type=DateTimeResource,
             subfields=DateTimeResource._all_fields())
 
     # just use the default _render_serializable here
