@@ -2,7 +2,7 @@ import datetime
 
 from pale import Endpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
-from tests.example_app.models import DateTimeModel
+from tests.example_app.models import DateTimeModel, DateTimeRangeModel
 from tests.example_app.api.resources import (DateTimeResource,
         DateTimeRangeResource)
 

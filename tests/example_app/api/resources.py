@@ -82,4 +82,4 @@ class DateTimeRangeResource(Resource):
             resource_type=DateTimeResource,
             subfields=DateTimeResource._all_fields())
 
-    # just use the default _render_serializable here
+    # default to all fields, and use the default _render_serializable
