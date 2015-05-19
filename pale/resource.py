@@ -9,7 +9,7 @@ class Resource(object):
 
     _value_type = "Base Resource"
 
-    _default_fields = ()
+    _default_fields = None
 
     @classmethod
     def _all_fields(cls):
@@ -38,6 +38,8 @@ class Resource(object):
                             "propagate out to the HTTP caller." % name)
                 attr._fix_up(cls, name)
                 cls._fields[attr.name] = attr
+        if cls._default_fields is None:
+            cls._default_fields = tuple(cls._fields.keys())
 
     def __init__(self, doc_string=None, fields=None):
         """Initialize the resource with the provided doc string and fields.
