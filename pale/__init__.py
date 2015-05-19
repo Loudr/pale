@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+"""Pale is an HTTP API specification tool for Flask and webapp2."""
+
 import inspect
 import types
 
@@ -8,6 +12,8 @@ from . import context
 from . import doc
 from .endpoint import Endpoint
 from .resource import NoContentResource, Resource, ResourceList
+
+__version__ = '0.5.0'
 
 ImplementationModule = "_pale__api_implementation"
 

@@ -1,12 +1,15 @@
 from setuptools import setup, find_packages
 from os import path
 
+from pale import __version__ as pale_version
+
+
 with open(path.join(path.dirname(__file__), 'README.md')) as readme:
     long_description = readme.read()
 
 setup(
     name="Pale",
-    version="0.4.0",
+    version=pale_version,
     author="R. Kevin Nelson",
     author_email="kevin@rkn.la",
     description="Pale is a framework for crafting HTTP APIs.",
