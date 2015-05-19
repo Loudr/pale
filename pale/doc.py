@@ -73,10 +73,12 @@ def generate_doc_dict(module):
                 `pale.ImplementationModule`.""")
 
     module_endpoints = extract_endpoints(module)
-    ep_doc = { ep._route_name: document_endpoint(ep) for ep in module_endpoints }
+    ep_doc = { ep._route_name: document_endpoint(ep) for ep \
+            in module_endpoints }
 
     module_resources = extract_resources(module)
-    res_doc = [document_resource(r) for r in module_resources]
+    res_doc = { r._value_type: document_resource(r) for r \
+            in module_resources }
 
     return {'endpoints': ep_doc,
             'resources': res_doc}

@@ -2,6 +2,7 @@ import unittest
 
 from pale.fields import BaseField, IntegerField, StringField
 
+
 class FieldsTests(unittest.TestCase):
 
     def setUp(self):
@@ -76,3 +77,14 @@ class FieldsTests(unittest.TestCase):
         self.assertIsNone(field.details)
         doc = field.doc_dict()
         self.assertIsNone(doc["extended_description"])
+
+
+    def test_resource_field(self):
+        """A resource field is the primary way to nest objects.
+
+        At a high level, a Resource is basically just a format and
+        content specification for a JSON object, so if one of the values
+        in that object is itself another object, it makes sense to
+        specify the nested object as simply a nested resource.
+        """
+        pass

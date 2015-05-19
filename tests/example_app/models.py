@@ -71,3 +71,30 @@ class DateTimeModel(object):
     @property
     def iso(self):
         return self.timestamp.isoformat()
+
+
+class DateTimeRangeModel(object):
+
+    def __init__(self, duration_microseconds):
+        self.duration = datetime.timedelta(microseconds=duration_microseconds)
+
+        utc_now = datetime.datetime.utcnow()
+        utc_then = utc_now + self.duration
+
+        if utc_now > utc_then:
+            start_datetime = utc_then
+            end_datetime = utc_now
+        else:
+            start_datetime = utc_now
+            end_datetime  = utc_then
+
+        self.start = DateTimeModel(start_datetime)
+        self.end = DateTimeModel(end_datetime)
+
+
+    @property
+    def duration_microseconds(self):
+        """Used by the DateTimeRangeResource"""
+        seconds = self.duration.total_seconds()
+        microseconds = int(seconds * 1000 * 1000)
+        return microseconds

@@ -24,7 +24,8 @@ class RelativeLinksField(BaseField):
         self.details = details
         self.link_generators = link_generators
 
-    def render(self, obj, name):
+
+    def render(self, obj, name, context):
         links = {}
         for renderer in self.link_generators:
             name, val = renderer(obj)

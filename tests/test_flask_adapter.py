@@ -12,8 +12,22 @@ class FlaskAdapterTests(unittest.TestCase):
         self.flask_app = create_pale_flask_app()
         self.app = TestApp(self.flask_app)
 
+
+    def assertExpectedFields(self, returned_dict, expected_fields):
+        d = returned_dict.copy() # don't clobber the input
+
+        for f in expected_fields:
+            self.assertIn(f, d)
+            val = d.pop(f)
+            # don't check the val for now
+
+        # make sure there's nothing extraneous left in the dict
+        self.assertEqual(len(d.keys()), 0)
+        return
+
+
     def test_successful_get_without_params(self):
-        resp = self.app.get('/api/current_time/')
+        resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
 
         # the 'time' value was set in the endpoint handler
@@ -27,18 +41,13 @@ class FlaskAdapterTests(unittest.TestCase):
         # so, we should expect to find all of them
         expected_fields = DateTimeResource._all_fields()
 
-        for f in expected_fields:
-            self.assertIn(f, returned_time)
-            val = returned_time.pop(f)
-            # don't check the val for now
-        # make sure there's extraneous left in the dict
-        self.assertEqual(len(returned_time.keys()), 0)
+        self.assertExpectedFields(returned_time, expected_fields)
 
 
     def test_successful_post_with_required_params(self):
         # month is required in the endpoint definition, so we must pass
         # it in here
-        resp = self.app.post('/api/parse_time/', {'month': 2})
+        resp = self.app.post('/api/time/parse', {'month': 2})
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn('time', resp.json_body)
@@ -49,13 +58,32 @@ class FlaskAdapterTests(unittest.TestCase):
         # so this one should only get the defaults
         expected_fields = DateTimeResource._default_fields
 
-        for f in expected_fields:
-            self.assertIn(f, returned_time)
-            val = returned_time.pop(f)
-        self.assertEqual(len(returned_time.keys()), 0)
+        self.assertExpectedFields(returned_time, expected_fields)
 
 
     def test_unsuccessful_post_missing_required_params(self):
-        resp = self.app.post('/api/parse_time/', status=422)
+        resp = self.app.post('/api/time/parse', status=422)
 
         self.assertIn('error', resp.json_body)
+
+
+    def test_getting_with_nested_resources(self):
+        test_duration = 60 * 1000 # one minute in milliseconds
+        resp = self.app.get('/api/time/range', {'duration': test_duration})
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('range', resp.json_body)
+
+        returned_range = resp.json_body['range']
+        self.assertEqual(returned_range['duration_microseconds'],
+                test_duration * 1000)
+
+        # start has default fields
+        start = returned_range['start']
+        expected_fields = DateTimeResource._default_fields
+        self.assertExpectedFields(start, expected_fields)
+
+        # end has all of them
+        end = returned_range['end']
+        expected_fields = DateTimeResource._all_fields()
+        self.assertExpectedFields(end, expected_fields)

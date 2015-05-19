@@ -2,14 +2,15 @@ import datetime
 
 from pale import Endpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
-from tests.example_app.models import DateTimeModel
-from tests.example_app.api.resources import DateTimeResource
+from tests.example_app.models import DateTimeModel, DateTimeRangeModel
+from tests.example_app.api.resources import (DateTimeResource,
+        DateTimeRangeResource)
 
 
 class CurrentTimeEndpoint(Endpoint):
     """An API endpoint to get the current time."""
     _http_method = "GET"
-    _uri = "/current_time/"
+    _uri = "/time/current"
     _route_name = "current_time"
 
     _returns = DateTimeResource(
@@ -27,7 +28,7 @@ class ParseTimeEndpoint(Endpoint):
     DateTimeResource.
     """
     _http_method = "POST"
-    _uri = "/parse_time/"
+    _uri = "/time/parse"
     _route_name = "parse_time"
 
 
@@ -75,3 +76,34 @@ class ParseTimeEndpoint(Endpoint):
         now.name = context.args.get('name', None)
 
         return {'time': now}
+
+
+class TimeRangeEndpoint(Endpoint):
+    """Returns start and end times based on the passed in duration.
+
+    The start time is implied to be "now", and the end time is calculated
+    by adding the duration to that start time.
+
+    This is obviously fairly contrived, but this endpoint is here to
+    illustrate and test nested resources.
+    """
+
+    _http_method = "GET"
+    _uri = "/time/range"
+    _route_name = "time_range_now_plus_duration"
+
+
+    _returns = DateTimeRangeResource(
+            "Information about the range specified, as well as the "
+            "range's start and end datetimes.")
+
+
+    duration = IntegerArgument(
+            "The duration in milliseconds to be used.",
+            required=True)
+
+
+    def _handle(self, context):
+        millis = context.args['duration']
+        time_range = DateTimeRangeModel(millis*1000) # microseconds
+        return {'range': time_range}

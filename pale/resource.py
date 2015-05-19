@@ -7,7 +7,9 @@ from pale.meta import MetaHasFields
 class Resource(object):
     __metaclass__ = MetaHasFields
 
-    _default_fields = ()
+    _value_type = "Base Resource"
+
+    _default_fields = None
 
     @classmethod
     def _all_fields(cls):
@@ -36,6 +38,8 @@ class Resource(object):
                             "propagate out to the HTTP caller." % name)
                 attr._fix_up(cls, name)
                 cls._fields[attr.name] = attr
+        if cls._default_fields is None:
+            cls._default_fields = tuple(cls._fields.keys())
 
     def __init__(self, doc_string=None, fields=None):
         """Initialize the resource with the provided doc string and fields.
@@ -75,7 +79,8 @@ class Resource(object):
         if self._fields_to_render is None:
             return output
         for field in self._fields_to_render:
-            output[field] = getattr(obj, field)
+            renderer = self._fields[field].render
+            output[field] = renderer(obj, field, context)
         return output
 
 

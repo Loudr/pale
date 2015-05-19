@@ -33,11 +33,17 @@ class BaseField(object):
         self.name = code_name
 
 
-    def render(self, obj, name):
+    def render(self, obj, name, context):
         """The default field renderer.
 
-        This basic renderer assumes that the object has an attribute with the
-        same name as the field."""
+        This basic renderer assumes that the object has an attribute with
+        the same name as the field.
+
+        The renderer is also passed the context so that it can be
+        propagated to the `_render_serializable` method of nested
+        resources (or, for example, if you decide to implement attribute
+        hiding at the field level instead of at the object level).
+        """
         return getattr(obj, name)
 
     def doc_dict(self):
@@ -62,20 +68,3 @@ class ListField(BaseField):
         doc = super(ListField, self).doc_dict()
         doc['item_type'] = self.item_type.value_type
         return doc
-
-
-class ResourceField(BaseField):
-    """A field that contains a rendered version of a different resource."""
-    value_type = 'resource'
-
-    def __init__(self, description, details=None, resource_type=None):
-        self.description = description
-        self.details = details
-        self.resource_type = resource_type
-
-    def doc_dict(self):
-        doc = super(ResourceField, self).doc_dict()
-        doc['resource_type'] = self.resource_type.__name__
-
-    # This field is incomplete, and probably needs a `render` method that
-    # renders the whole nested resource
