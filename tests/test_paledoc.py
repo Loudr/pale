@@ -16,7 +16,7 @@ class PaleDocTests(unittest.TestCase):
         self.assertTrue(isinstance(self.doc_dict['endpoints'], dict))
 
         self.assertTrue('resources' in self.doc_dict)
-        self.assertTrue(isinstance(self.doc_dict['resources'], list))
+        self.assertTrue(isinstance(self.doc_dict['resources'], dict))
 
 
     def test_doc_json(self):
