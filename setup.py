@@ -13,7 +13,7 @@ setup(
     author="R. Kevin Nelson",
     author_email="kevin@rkn.la",
     description="Pale is a framework for crafting HTTP APIs.",
-    license="Copyright 2015-present, Loudr.fm. All rights reserved.",
+    license="MIT License",
     url="https://github.com/Loudr/pale",
     packages=find_packages(),
     scripts=['bin/paledoc'],
