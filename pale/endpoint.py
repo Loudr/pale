@@ -36,12 +36,6 @@ class Endpoint(object):
                 attr._fix_up(cls, name)
                 cls._arguments[attr.name] = attr
 
-    def __init__(self, *args, **kwargs):
-        if hasattr(self, '__metadata__'):
-            self._method = self.__metadata__.get('http_method', 'GET')
-            self._uri = self.__metadata__.get('uri', '/')
-            if 'route_name' in self.__metadata__:
-                self._name = self.__metadata__['route_name']
 
     def _set_response_class(self, response_class):
         """Sets the response class for this endpoint.  This is usually only
