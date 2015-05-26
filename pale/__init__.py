@@ -34,12 +34,19 @@ def extract_endpoints(api_module):
         raise ValueError(("pale.extract_endpoints expected the passed in "
             "api_module to have an `endpoints` attribute, but it didn't!"))
 
-    classes = [v for (k,v) in inspect.getmembers(api_module.endpoints,
-                                                 inspect.isclass)]
+    endpoints = api_module.endpoints
+    if isinstance(endpoints, types.ModuleType):
+        classes = [v for (k,v) in inspect.getmembers(endpoints,
+                                                     inspect.isclass)]
+    elif isinstance(endpoints, (list, tuple)):
+        classes = endpoints
+    else:
+        raise ValueError("Endpoints is not a module or list type!")
+
     instances = []
 
     for cls in classes:
-        if Endpoint in cls.__bases__:
+        if cls != Endpoint and Endpoint in inspect.getmro(cls):
             instances.append(cls())
     return instances
 
