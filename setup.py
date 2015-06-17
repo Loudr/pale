@@ -15,7 +15,7 @@ setup(
     description="Pale is a framework for crafting HTTP APIs.",
     license="MIT License",
     url="https://github.com/Loudr/pale",
-    packages=find_packages(),
+    packages=find_packages(exclude('tests',)),
     scripts=['bin/paledoc'],
     entry_points={
         'console_scripts': ['paledoc = pale.doc:run_pale_doc']

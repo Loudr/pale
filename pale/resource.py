@@ -140,5 +140,4 @@ class DebugResource(Resource):
     """
 
     def _render_serializable(self, obj, context):
-        output = {}
-        return output
+        return obj
