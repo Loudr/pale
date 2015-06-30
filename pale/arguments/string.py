@@ -13,12 +13,12 @@ class StringArgument(BaseArgument):
         self._validate_type(item, item_name)
 
         if self.required is True and \
-                (item is None or str(item) == ""):
+                (item is None or unicode(item) == ""):
                 raise ArgumentError(item_name,
                         ("This argument is required, and cannot be an empty "
                          "string."))
         if item is not None:
-            item = str(item)
+            item = unicode(item)
         return item
 
 
