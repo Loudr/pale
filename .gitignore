@@ -61,3 +61,5 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+
+*.sublime-workspace
