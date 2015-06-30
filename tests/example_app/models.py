@@ -26,17 +26,32 @@ class DateTimeModel(object):
         # datetime.datetime is immutable, so create a new one with the
         # updated values
         if day is None:
+            # this can fail if the update month
             day = self.timestamp.day
 
-        new_timestamp = datetime.datetime(
-                year=year,
-                month=month,
-                day=day,
-                hour=self.timestamp.hour,
-                minute=self.timestamp.minute,
-                second=self.timestamp.second,
-                microsecond=self.timestamp.microsecond,
-                tzinfo=self.timestamp.tzinfo)
+        try:
+            new_timestamp = datetime.datetime(
+                    year=year,
+                    month=month,
+                    day=day,
+                    hour=self.timestamp.hour,
+                    minute=self.timestamp.minute,
+                    second=self.timestamp.second,
+                    microsecond=self.timestamp.microsecond,
+                    tzinfo=self.timestamp.tzinfo)
+        except ValueError, exc:
+            if "day is out of range for month" not in str(exc):
+                raise
+
+            new_timestamp = datetime.datetime(
+                    year=year,
+                    month=month,
+                    day=1,      # If the day is out of range...
+                    hour=self.timestamp.hour,
+                    minute=self.timestamp.minute,
+                    second=self.timestamp.second,
+                    microsecond=self.timestamp.microsecond,
+                    tzinfo=self.timestamp.tzinfo)
 
         self.timestamp = new_timestamp
 
