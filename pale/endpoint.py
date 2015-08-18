@@ -1,17 +1,45 @@
 import json
 import logging
 
+import arrow
 from pale import config as pale_config
 from pale.arguments import BaseArgument
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
 from pale.response import PaleRaisedResponse
 
+
+class PaleDefaultJSONEncoder(json.JSONEncoder):
+    """The default JSON Encoder for Pale.
+
+    The main difference between this and Python's default JSON encoder
+    is that this encoder attempts to serialize datetimes to ISO format,
+    and tries to call a `to_dict` method on the passed in object before
+    giving up.
+    """
+    def default(self, obj):
+        try:
+            if isinstance(obj, datetime.datetime):
+                # do the datetime thing,  or
+                encoded = arrow.get(obj).isoformat()
+            else:
+                # try the normal encoder
+                encoded = JSONEncoder.default(self, obj)
+        except TypeError as e:
+            # if that fails, check for the to_dict method,
+            if hasattr(obj, 'to_dict') and callable(obj.to_dict):
+                # and use it!
+                encoded = obj.to_dict()
+            else:
+                raise e
+        return encoded
+
+
 class Endpoint(object):
     __metaclass__ = MetaHasFields
 
     _response_class = None
-    _json_serializer = json.JSONEncoder()
+    _json_serializer = PaleDefaultJSONEncoder()
 
 
     @classmethod
