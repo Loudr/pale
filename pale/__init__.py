@@ -4,6 +4,7 @@
 
 import inspect
 import types
+from os import path
 
 from . import adapters
 from . import arguments
