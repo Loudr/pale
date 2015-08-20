@@ -1,11 +1,13 @@
 from setuptools import setup, find_packages
 from os import path
 
-from pale import __version__ as pale_version
-
 
 with open(path.join(path.dirname(__file__), 'README.md')) as readme:
     long_description = readme.read()
+
+version_file_path = path.join(path.dirname(__file__), 'VERSION')
+with open(version_file_path) as version_file:
+    pale_version = version_file.read().strip()
 
 setup(
     name="Pale",
