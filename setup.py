@@ -17,6 +17,9 @@ setup(
     url="https://github.com/Loudr/pale",
     packages=find_packages(exclude=('tests',)),
     scripts=['bin/paledoc'],
+    install_requires=[
+        'arrow==0.6.0'
+    ],
     entry_points={
         'console_scripts': ['paledoc = pale.doc:run_pale_doc']
     }
