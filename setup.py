@@ -5,7 +5,7 @@ from os import path
 with open(path.join(path.dirname(__file__), 'README.md')) as readme:
     long_description = readme.read()
 
-version_file_path = path.join(path.dirname(__file__), 'VERSION')
+version_file_path = path.join(path.dirname(__file__), 'pale', 'VERSION')
 with open(version_file_path) as version_file:
     pale_version = version_file.read().strip()
 
@@ -20,7 +20,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
     scripts=['bin/paledoc'],
     package_data={
-        '': ['VERSION']
+        'pale': ['VERSION']
     },
     install_requires=[
         'arrow==0.6.0'],
