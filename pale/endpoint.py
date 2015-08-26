@@ -2,6 +2,7 @@
 import datetime
 import json
 import logging
+import sys
 
 import arrow
 from pale import config as pale_config
@@ -194,9 +195,7 @@ class Endpoint(object):
         except PaleRaisedResponse as r:
             return self._response_class(*r.response)
         except Exception as e:
-            logging.error(e.message)
-            import traceback
-            traceback.print_exc()
+            logging.exception(e)
             raise e
 
         return self._context.response

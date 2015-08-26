@@ -71,11 +71,17 @@ def bind_pale_to_webapp2(pale_app_module,
 class DefaultWebapp2Context(pale.context.DefaultContext):
 
     def build_args_from_request(self, request):
-
         keys = request.arguments()
         args = {}
+
         for key in keys:
             args[key] = request.get_all(key)
+
+        for k,v in request.route_kwargs.iteritems():
+            if k in args:
+                logging.warning("Overwriting request arg %s with route arg",
+                        k)
+            args[k] = v
         return args
 
     def __init__(self, endpoint, request):
@@ -85,5 +91,6 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
         self.request = request
         self._raw_args = self.build_args_from_request(request)
         self.route_args = request.route_args
+        self.route_kwargs = request.route_kwargs
         self.current_user = None
         self.endpoint = endpoint
