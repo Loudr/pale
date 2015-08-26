@@ -4,6 +4,7 @@
 
 import inspect
 import types
+from os import path
 
 from . import adapters
 from . import arguments
@@ -13,7 +14,8 @@ from . import doc
 from .endpoint import Endpoint
 from .resource import NoContentResource, Resource, ResourceList
 
-__version__ = '0.5.1'
+with open(path.join(path.dirname(__file__), 'VERSION')) as version_file:
+    __version__ = version_file.read().strip()
 
 ImplementationModule = "_pale__api_implementation"
 

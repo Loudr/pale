@@ -1,0 +1,10 @@
+# have a gander at https://caremad.io/2013/07/setup-vs-requirement/ to
+# see why we do this this way.
+
+# as metioned in that article, the follwing index-url is implicit,
+# but we specify it here in case we decide to change it one day
+--index-url https://pypi.python.org/simple/
+
+
+# install the requirements specified in setup.py
+-e .

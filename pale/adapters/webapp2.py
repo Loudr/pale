@@ -15,7 +15,7 @@ def pale_webapp2_request_handler_generator(pale_endpoint):
     for each pale endpoint.
     """
     logging.info(pale_endpoint._route_name)
-    def pale_handler(self):
+    def pale_handler(self, *args, **kwargs):
         return pale_endpoint._execute(self.request)
     cls = type(pale_endpoint._route_name,
             (webapp2.RequestHandler,),
