@@ -27,7 +27,7 @@ class PaleDefaultJSONEncoder(json.JSONEncoder):
                 encoded = arrow.get(obj).isoformat()
             else:
                 # try the normal encoder
-                encoded = JSONEncoder.default(self, obj)
+                encoded = json.JSONEncoder.default(self, obj)
         except TypeError as e:
             # if that fails, check for the to_dict method,
             if hasattr(obj, 'to_dict') and callable(obj.to_dict):
