@@ -56,7 +56,29 @@ class ResourceListField(ListField):
         self.item_type = ResourceField
         self.resource_type = resource_type
 
+        if subfields is None:
+            subfields = resource_type._default_fields
+        self.subfields = subfields
+
+        self.resource_instance = self.resource_type(
+                'nested_resource',
+                fields=self.subfields)
+
+
     def doc_dict(self):
         doc = super(ResourceListField, self).doc_dict()
         doc['resource_type'] = self.resource_type._value_type
         return doc
+
+
+    def render(self, obj, name, context):
+        if obj is None:
+            return None
+
+        output = []
+        list_of_resources = getattr(obj, name, [])
+        renderer = self.resource_instance._render_serializable
+        for res in list_of_resources:
+            item = renderer(res, context)
+            output.append(item)
+        return output
