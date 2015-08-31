@@ -46,7 +46,7 @@ class ResourceListField(ListField):
     def __init__(self,
             description,
             details=None,
-            resource_type=DebugResource,
+            resource_type=Resource,
             subfields=None):
         self.description = description
         self.details = details
