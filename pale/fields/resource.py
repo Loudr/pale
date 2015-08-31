@@ -33,9 +33,12 @@ class ResourceField(BaseField):
 
 
     def render(self, obj, name, context):
-        instance = getattr(obj, name)
-        renderer = self.resource_instance._render_serializable
-        output = renderer(instance, context)
+        if obj is None:
+            output = None
+        else:
+            instance = getattr(obj, name, None)
+            renderer = self.resource_instance._render_serializable
+            output = renderer(instance, context)
         return output
 
 

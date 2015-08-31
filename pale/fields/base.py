@@ -44,7 +44,7 @@ class BaseField(object):
         resources (or, for example, if you decide to implement attribute
         hiding at the field level instead of at the object level).
         """
-        return getattr(obj, name)
+        return getattr(obj, name, None)
 
     def doc_dict(self):
         """Generate the documentation for this field."""
