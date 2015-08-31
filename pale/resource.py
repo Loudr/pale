@@ -120,8 +120,9 @@ class ResourceList(Resource):
         """
         output = []
         for obj in list_of_objs:
-            item = self._item_resource._render_serializable(obj, context)
-            output.append(item)
+            if obj is not None:
+                item = self._item_resource._render_serializable(obj, context)
+                output.append(item)
         return output
 
 
