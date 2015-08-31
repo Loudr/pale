@@ -1,4 +1,4 @@
-from pale.fields.base import BaseField
+from pale.fields.base import BaseField, ListField
 from pale.resource import Resource
 
 
@@ -37,3 +37,23 @@ class ResourceField(BaseField):
         renderer = self.resource_instance._render_serializable
         output = renderer(instance, context)
         return output
+
+
+class ResourceListField(ListField):
+    """A Field that contains a list of Fields."""
+    value_type = 'list'
+
+    def __init__(self,
+            description,
+            details=None,
+            resource_type=DebugResource,
+            subfields=None):
+        self.description = description
+        self.details = details
+        self.item_type = ResourceField
+        self.resource_type = resource_type
+
+    def doc_dict(self):
+        doc = super(ResourceListField, self).doc_dict()
+        doc['resource_type'] = self.resource_type._value_type
+        return doc
