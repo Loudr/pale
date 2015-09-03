@@ -3,8 +3,9 @@
 """Pale is an HTTP API specification tool for Flask and webapp2."""
 
 import inspect
-import types
+import logging
 from os import path
+import types
 
 from . import adapters
 from . import arguments
@@ -14,8 +15,18 @@ from . import doc
 from .endpoint import Endpoint
 from .resource import NoContentResource, Resource, ResourceList
 
-with open(path.join(path.dirname(__file__), 'VERSION')) as version_file:
-    __version__ = version_file.read().strip()
+try:
+    """Google App Engine won't let you read a file from the file system like
+    this, so __version__ will be different on a GAE server when used in
+    production.  In real world use cases, we don't really expect this to be
+    a problem, since the __version__ string is usually just useful for 
+    debugging."""
+    with open(path.join(path.dirname(__file__), 'VERSION')) as version_file:
+        __version__ = version_file.read().strip()
+except Exception, exc:
+    logging.warn(
+        "Pale's VERSION file couldn't be loaded. __version__ will be inaccurate.")
+    __version__ = None
 
 ImplementationModule = "_pale__api_implementation"
 
