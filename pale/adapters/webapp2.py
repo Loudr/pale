@@ -74,9 +74,19 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
         keys = request.arguments()
         args = {}
 
+        j_args = self.deserialize_args_from_body(request.body)
+
         for key in keys:
             args[key] = request.get_all(key)
 
+        # json/body args
+        for k,v in j_args.iteritems():
+            if k in args:
+                logging.warning("Overwriting request arg %s with json arg",
+                        k)
+            args[k] = v
+
+        # route args
         for k,v in request.route_kwargs.iteritems():
             if k in args:
                 logging.warning("Overwriting request arg %s with route arg",

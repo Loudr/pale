@@ -61,7 +61,13 @@ def bind_blueprint(pale_api_module, flask_blueprint):
 class DefaultFlaskContext(pale.context.DefaultContext):
 
     def build_args_from_request(self, request):
-        return request.values.to_dict(flat=False)
+        body = request.get_data(as_text=True)
+
+        qs_args = request.values.to_dict(flat=False)
+        js_args = self.deserialize_args_from_body(body)
+
+        qs_args.update(js_args)
+        return qs_args
 
     def __init__(self, endpoint, request):
         super(DefaultFlaskContext, self).__init__()
