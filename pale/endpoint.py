@@ -245,6 +245,7 @@ class Endpoint(object):
                 # be a list, which we strip out if the length is 1 and if the
                 # validator doesn't expect a list
                 if patched_value is not None and \
+                        isinstance(patched_value, list) and \
                         len(patched_value) == 1 and \
                         list not in arg_obj.allowed_types:
                     patched_value = patched_value[0]
@@ -259,10 +260,10 @@ class Endpoint(object):
 
     def _parse_handler_result(self, result):
         """Parses the item(s) returned by your handler implementation.
-        
+
         Handlers may return a single item (payload), or a tuple that gets
         passed to the Response class __init__ method of your HTTP layer.
-        
+
         _parse_handler_result separates the payload from the rest the tuple,
         as well as providing the tuple so that it can be re-composed after
         the payload has been run through the `_returns` Resource's renderer.

@@ -61,10 +61,29 @@ class FlaskAdapterTests(unittest.TestCase):
         self.assertExpectedFields(returned_time, expected_fields)
 
 
+    def test_successful_json_post_with_required_params(self):
+        # month is required in the endpoint definition, so we must pass
+        # it in here
+        resp = self.app.post_json('/api/time/parse', {'month': 2})
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('time', resp.json_body)
+
+        returned_time = resp.json_body['time']
+
+        # we didn't specify any other fields in the endpoint definition,
+        # so this one should only get the defaults
+        expected_fields = DateTimeResource._default_fields
+
+        self.assertExpectedFields(returned_time, expected_fields)
+
+
     def test_unsuccessful_post_missing_required_params(self):
         resp = self.app.post('/api/time/parse', status=422)
 
         self.assertIn('error', resp.json_body)
+
+
 
 
     def test_getting_with_nested_resources(self):
