@@ -34,11 +34,12 @@ class ResourceField(BaseField):
 
     def render(self, obj, name, context):
         if obj is None:
-            output = None
-        else:
-            instance = getattr(obj, name, None)
-            renderer = self.resource_instance._render_serializable
-            output = renderer(instance, context)
+            return None
+        # the base renderer basically just calls getattr, so it will
+        # return the resource here
+        resource = super(ResourceField, self).render(obj, name, context)
+        renderer = self.resource_instance._render_serializable
+        output = renderer(resource, context)
         return output
 
 
@@ -77,9 +78,11 @@ class ResourceListField(ListField):
             return None
 
         output = []
-        list_of_resources = getattr(obj, name, [])
+        # again, the base renderer basically just calls getattr.
+        # We're expecting the attr to be a list, though.
+        resources = super(ResourceListField, self).render(obj, name, context)
         renderer = self.resource_instance._render_serializable
-        for res in list_of_resources:
+        for res in resources:
             item = renderer(res, context)
             output.append(item)
         return output

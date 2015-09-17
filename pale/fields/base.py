@@ -42,7 +42,8 @@ class BaseField(object):
         """The default field renderer.
 
         This basic renderer assumes that the object has an attribute with
-        the same name as the field.
+        the same name as the field, unless a different field is specified
+        as a `property_name`.
 
         The renderer is also passed the context so that it can be
         propagated to the `_render_serializable` method of nested
