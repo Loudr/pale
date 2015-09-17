@@ -10,11 +10,13 @@ class ResourceField(BaseField):
 
     def __init__(self,
             description,
-            details=None,
             resource_type=Resource,
-            subfields=None):
-        self.description = description
-        self.details = details
+            subfields=None,
+            **kwargs):
+        super(ResourceField, self).__init__(
+                self.value_type,
+                description,
+                **kwargs)
         self.resource_type = resource_type
 
         if subfields is None:
