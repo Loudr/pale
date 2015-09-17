@@ -13,10 +13,15 @@ class BaseField(object):
     include validation functionality.
     """
 
-    def __init__(self, value_type, description, details=None):
+    def __init__(self,
+                 value_type,
+                 description,
+                 details=None,
+                 property_name=None):
         self.value_type = value_type
         self.description = description
         self.details = details
+        self.property_name = property_name
 
     def _fix_up(self, cls, code_name):
         """Internal helper to name the field after its variable.
@@ -44,7 +49,10 @@ class BaseField(object):
         resources (or, for example, if you decide to implement attribute
         hiding at the field level instead of at the object level).
         """
-        return getattr(obj, name, None)
+        attr_name = name
+        if self.property_name is not None:
+            attr_name = self.property_name
+        return getattr(obj, attr_name, None)
 
     def doc_dict(self):
         """Generate the documentation for this field."""
@@ -59,9 +67,11 @@ class ListField(BaseField):
     """A Field that contains a list of Fields."""
     value_type = 'list'
 
-    def __init__(self, description, details=None, item_type=BaseField):
-        self.description = description
-        self.details = details
+    def __init__(self, description, item_type=BaseField, **kwargs):
+        super(ListField, self).__init__(
+                self.value_type,
+                description,
+                **kwargs)
         self.item_type = item_type
 
     def doc_dict(self):
