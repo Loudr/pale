@@ -75,6 +75,10 @@ class Resource(object):
         logging.info("""Careful, you're calling ._render_serializable on the
         base resource, which is probably not what you actually want to be
         doing!""")
+        if obj is None:
+            logging.debug(
+                    "_render_serializable passed a None obj, returning None")
+            return None
         output = {}
         if self._fields_to_render is None:
             return output
