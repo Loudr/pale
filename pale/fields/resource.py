@@ -50,7 +50,7 @@ class ResourceListField(ListField):
             description,
             resource_type=Resource,
             subfields=None,
-            **kwargs)
+            **kwargs):
         super(ResourceListField, self).__init__(
                 description,
                 item_type=self.item_type,
