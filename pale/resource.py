@@ -41,6 +41,7 @@ class Resource(object):
         if cls._default_fields is None:
             cls._default_fields = tuple(cls._fields.keys())
 
+
     def __init__(self, doc_string=None, fields=None):
         """Initialize the resource with the provided doc string and fields.
 
@@ -97,8 +98,9 @@ class ResourceList(Resource):
     """
     _description = "A generic list of Resources"
 
-    def __init__(self, doc_string, item_type):
-        super(ResourceList, self).__init__(doc_string)
+    def __init__(self, doc_string, item_type, **kwargs):
+        kwargs['doc_string'] = doc_string
+        super(ResourceList, self).__init__(**kwargs)
 
         if isinstance(item_type, Resource):
             self._item_resource = item_type
