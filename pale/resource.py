@@ -11,9 +11,16 @@ class Resource(object):
 
     _default_fields = None
 
+    _registered_resources = dict()
+
     @classmethod
     def _all_fields(cls):
         return tuple(cls._fields.keys())
+
+    @classmethod
+    def _register_resource(cls, name):
+        logging.debug("Registering resource %s: %s", name, cls)
+        cls._registered_resources[name] = cls
 
     @classmethod
     def _fix_up_fields(cls):

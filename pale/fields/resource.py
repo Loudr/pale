@@ -33,8 +33,14 @@ class ResourceField(BaseField):
     def _resolve_resource_type(self):
         if not self._resource_type_resolved:
             if isinstance(self.resource_type, basestring):
-                import pdb; pdb.set_trace()
-                self.resource_type = globals().get(self.resource_type, Resource)
+                resource_type_class = Resource._registered_resources.get(
+                        self.resource_type)
+                if resource_type_class is None:
+                    logging.warn("Could not find registered resource %s",
+                            self.resource_type)
+                    raise Exception("Invalid resource name %s",
+                            self.resource_type)
+                self.resource_type = resource_type_class
             if self.subfields is None:
                 self.subfields = self.resource_type._default_fields
             self.resource_instance = self.resource_type(
