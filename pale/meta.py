@@ -65,5 +65,5 @@ class MetaResource(MetaHasFields):
     }
     """
     def __init__(cls, name, bases, classdict):
-        super(MetaHasFields, cls).__init__(name, bases, classdict)
+        super(MetaResource, cls).__init__(name, bases, classdict)
         cls._register_resource(name)
