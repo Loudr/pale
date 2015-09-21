@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 
 class MetaHasFields(type):
     """Metaclass for classes that support named field definitions.
