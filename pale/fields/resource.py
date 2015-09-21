@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pale.fields.base import BaseField, ListField
 from pale.resource import Resource
 
@@ -17,7 +18,15 @@ class ResourceField(BaseField):
                 self.value_type,
                 description,
                 **kwargs)
+        self.subfields = subfields
         self.resource_type = resource_type
+
+        if isinstance(resource_type, basestring):
+            self._defer_resource_type_resolution = True
+            self._resource_type_resolved = False
+            self.resource_instance = None
+        else:
+            self._defer_resource_type_resolution = False
 
         if subfields is None:
             subfields = resource_type._default_fields
@@ -27,9 +36,21 @@ class ResourceField(BaseField):
                 'nested_resource',
                 fields=self.subfields)
 
+    def _resolve_resource_type(self):
+        if isinstance(self.resource_type, basestring):
+            import pdb; pdb.set_trace()
+            self.resource_type = globals().get(self.resource_type, Resource)
+            if self.subfields is None:
+                self.subfields = self.resource_type._default_fields
+            self.resource_instance = self.resource_type(
+                    'nested_resource',
+                    fields=self.subfields)
+        self._resource_type_resolved = True
+
 
     def doc_dict(self):
         doc = super(ResourceField, self).doc_dict()
+        self._resolve_resource_type()
         doc['resource_type'] = self.resource_type._value_type
         doc['default_fields'] = self.subfields
 
@@ -40,6 +61,7 @@ class ResourceField(BaseField):
         # the base renderer basically just calls getattr, so it will
         # return the resource here
         resource = super(ResourceField, self).render(obj, name, context)
+        self._resolve_resource_type()
         renderer = self.resource_instance._render_serializable
         output = renderer(resource, context)
         return output
