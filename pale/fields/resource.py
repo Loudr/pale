@@ -20,6 +20,7 @@ class ResourceField(BaseField):
                 **kwargs)
         self.subfields = subfields
         self.resource_type = resource_type
+        self._resource_type_resolved = False
 
         if isinstance(resource_type, basestring):
             self._defer_resource_type_resolution = True
@@ -27,25 +28,19 @@ class ResourceField(BaseField):
             self.resource_instance = None
         else:
             self._defer_resource_type_resolution = False
-
-        if subfields is None:
-            subfields = resource_type._default_fields
-        self.subfields = subfields
-
-        self.resource_instance = self.resource_type(
-                'nested_resource',
-                fields=self.subfields)
+            self._resolve_resource_type()
 
     def _resolve_resource_type(self):
-        if isinstance(self.resource_type, basestring):
-            import pdb; pdb.set_trace()
-            self.resource_type = globals().get(self.resource_type, Resource)
+        if not self._resource_type_resolved:
+            if isinstance(self.resource_type, basestring):
+                import pdb; pdb.set_trace()
+                self.resource_type = globals().get(self.resource_type, Resource)
             if self.subfields is None:
                 self.subfields = self.resource_type._default_fields
             self.resource_instance = self.resource_type(
                     'nested_resource',
                     fields=self.subfields)
-        self._resource_type_resolved = True
+            self._resource_type_resolved = True
 
 
     def doc_dict(self):
