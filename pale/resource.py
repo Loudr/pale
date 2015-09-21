@@ -2,10 +2,10 @@ import logging
 import types
 
 from pale.fields import BaseField
-from pale.meta import MetaHasFields
+from pale.meta import MetaResource
 
 class Resource(object):
-    __metaclass__ = MetaHasFields
+    __metaclass__ = MetaResource
 
     _value_type = "Base Resource"
 
