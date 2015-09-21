@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from pale.fields.base import BaseField, ListField
 from pale.resource import Resource
 
