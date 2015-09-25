@@ -18,4 +18,3 @@ class Webapp2AdapterTests(FlaskAdapterTests):
         from tests.example_app.webapp2_app import create_pale_webapp2_app
         self.wsgi_app = create_pale_webapp2_app()
         self.app = TestApp(self.wsgi_app)
-
