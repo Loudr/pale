@@ -84,8 +84,6 @@ class FlaskAdapterTests(unittest.TestCase):
         self.assertIn('error', resp.json_body)
 
 
-
-
     def test_getting_with_nested_resources(self):
         test_duration = 60 * 1000 # one minute in milliseconds
         resp = self.app.get('/api/time/range', {'duration': test_duration})

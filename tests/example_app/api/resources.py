@@ -20,7 +20,8 @@ class DateTimeResource(Resource):
     minutes = IntegerField("The minutes, between 0 and 59")
     seconds = IntegerField("The seconds, between 0 and 59")
 
-    iso = StringField("The DateTime's ISO representation")
+    isoformat = StringField("The DateTime's ISO representation",
+            property_name='iso')
 
     name = StringField("Your DateTime's name",
             details="This value will be `null` on most DateTimes.  It's "
@@ -31,7 +32,7 @@ class DateTimeResource(Resource):
     _default_fields = ('year',
                        'month',
                        'day',
-                       'iso')
+                       'isoformat')
 
 
     def _render_serializable(self, instance, context):
