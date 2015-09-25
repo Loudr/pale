@@ -145,7 +145,7 @@ class FieldsTests(unittest.TestCase):
         self.assertEqual(doc["resource_type"],
                 DateTimeResource._value_type)
         self.assertEqual(doc["default_fields"],
-                field.subfields)
+                list(field.subfields))
 
 
     def test_resource_field_no_type(self):
