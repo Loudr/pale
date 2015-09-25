@@ -61,13 +61,16 @@ def bind_blueprint(pale_api_module, flask_blueprint):
 class DefaultFlaskContext(pale.context.DefaultContext):
 
     def build_args_from_request(self, request):
-        body = request.get_data(as_text=True)
-
-        qs_args = request.values.to_dict(flat=False)
-        js_args = self.deserialize_args_from_body(body)
-
-        qs_args.update(js_args)
-        return qs_args
+        # in flask, `request.values` is querystring args, and form args
+        req_args = request.values.to_dict(flat=False)
+        if request.content_type == 'application/json':
+            json_args = request.get_json()
+            for k,v in json_args.iteritems():
+                if k in req_args:
+                    logging.warning("Found duplicate argument %s. "
+                            "Preferring json argument to querystring arg.", k)
+                req_args[k] = v
+        return req_args
 
     def __init__(self, endpoint, request):
         super(DefaultFlaskContext, self).__init__()

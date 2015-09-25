@@ -72,27 +72,26 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
 
     def build_args_from_request(self, request):
         keys = request.arguments()
-        args = {}
-
-        j_args = self.deserialize_args_from_body(request.body)
+        req_args = {}
 
         for key in keys:
-            args[key] = request.get_all(key)
+            req_args[key] = request.get_all(key)
 
-        # json/body args
-        for k,v in j_args.iteritems():
-            if k in args:
-                logging.warning("Overwriting request arg %s with json arg",
-                        k)
-            args[k] = v
+        if request.content_type == 'application/json':
+            json_args = request.json_body
+            for k,v in json_args.iteritems():
+                if k in req_args:
+                    logging.warning("Found duplicate argument %s. "
+                            "Preferring json argument to querystring arg.", k)
+                req_args[k] = v
 
         # route args
         for k,v in request.route_kwargs.iteritems():
-            if k in args:
-                logging.warning("Overwriting request arg %s with route arg",
-                        k)
-            args[k] = v
-        return args
+            if k in req_args:
+                logging.warning("Found duplicate argument %s. "
+                        "Preferring route argument to querystring and args.", k)
+            req_args[k] = v
+        return req_args
 
     def __init__(self, endpoint, request):
         super(DefaultWebapp2Context, self).__init__()
