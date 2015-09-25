@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
 import unittest
 
-from pale.fields import BaseField, IntegerField, StringField
+from pale import Resource
+from pale.fields import (BaseField, IntegerField, ListField, ResourceField,
+        ResourceListField, StringField)
+
+from tests.example_app.api.resources import DateTimeResource
 
 
 class FieldsTests(unittest.TestCase):
@@ -79,12 +84,78 @@ class FieldsTests(unittest.TestCase):
         self.assertIsNone(doc["extended_description"])
 
 
+    def test_list_field_with_no_item_type(self):
+        list_no_item_type = ListField("This is a test list field",
+                "You might add information about the list here.")
+        self.assertEqual(list_no_item_type.value_type, "list")
+        self.assertEqual(list_no_item_type.description,
+                "This is a test list field")
+        self.assertEqual(list_no_item_type.details,
+                "You might add information about the list here.")
+        self.assertEqual(list_no_item_type.item_type, BaseField)
+
+
+    def test_create_list_field(self):
+        field = ListField("This is a test list field",
+                "You might add information about the list here.",
+                item_type=StringField)
+        self.assertEqual(field.value_type, "list")
+        self.assertEqual(field.description,
+                "This is a test list field")
+        self.assertEqual(field.details,
+                "You might add information about the list here.")
+        self.assertEqual(field.item_type, StringField)
+
+        doc = field.doc_dict()
+        self.assertEqual(doc["type"], "list")
+        self.assertEqual(doc["description"], "This is a test list field")
+        self.assertEqual(doc["extended_description"],
+                "You might add information about the list here.")
+        self.assertEqual(doc["item_type"],
+                StringField.value_type)
+
+
     def test_resource_field(self):
-        """A resource field is the primary way to nest objects.
+        """Test ResourceField creation and documentation
+        
+        A resource field is the primary way to nest objects.
 
         At a high level, a Resource is basically just a format and
         content specification for a JSON object, so if one of the values
         in that object is itself another object, it makes sense to
         specify the nested object as simply a nested resource.
         """
-        pass
+        field = ResourceField("This is a test resource field",
+                "Why does this Resource have another Resource?",
+                resource_type=DateTimeResource)
+
+        self.assertEqual(field.value_type, "resource")
+        self.assertEqual(field.description,
+                "This is a test resource field")
+        self.assertEqual(field.details,
+                "Why does this Resource have another Resource?")
+        self.assertEqual(field.resource_type, DateTimeResource)
+        self.assertEqual(field.subfields, DateTimeResource._default_fields)
+
+        doc = field.doc_dict()
+        self.assertEqual(doc["type"], "resource")
+        self.assertEqual(doc["description"], "This is a test resource field")
+        self.assertEqual(doc["extended_description"],
+                "Why does this Resource have another Resource?")
+        self.assertEqual(doc["resource_type"],
+                DateTimeResource._value_type)
+        self.assertEqual(doc["default_fields"],
+                field.subfields)
+
+
+    def test_resource_field_no_type(self):
+        field = ResourceField("This is a test resource field",
+                "Why does this Resource have another Resource?")
+
+        self.assertEqual(field.value_type, "resource")
+        self.assertEqual(field.description,
+                "This is a test resource field")
+        self.assertEqual(field.details,
+                "Why does this Resource have another Resource?")
+        self.assertEqual(field.resource_type, Resource)
+        self.assertEqual(field.subfields, None)
