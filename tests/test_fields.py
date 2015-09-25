@@ -86,7 +86,7 @@ class FieldsTests(unittest.TestCase):
 
     def test_list_field_with_no_item_type(self):
         list_no_item_type = ListField("This is a test list field",
-                "You might add information about the list here.")
+                details="You might add information about the list here.")
         self.assertEqual(list_no_item_type.value_type, "list")
         self.assertEqual(list_no_item_type.description,
                 "This is a test list field")
@@ -97,7 +97,7 @@ class FieldsTests(unittest.TestCase):
 
     def test_create_list_field(self):
         field = ListField("This is a test list field",
-                "You might add information about the list here.",
+                details="You might add information about the list here.",
                 item_type=StringField)
         self.assertEqual(field.value_type, "list")
         self.assertEqual(field.description,
@@ -126,7 +126,7 @@ class FieldsTests(unittest.TestCase):
         specify the nested object as simply a nested resource.
         """
         field = ResourceField("This is a test resource field",
-                "Why does this Resource have another Resource?",
+                details="Why does this Resource have another Resource?",
                 resource_type=DateTimeResource)
 
         self.assertEqual(field.value_type, "resource")
@@ -150,7 +150,7 @@ class FieldsTests(unittest.TestCase):
 
     def test_resource_field_no_type(self):
         field = ResourceField("This is a test resource field",
-                "Why does this Resource have another Resource?")
+                details="Why does this Resource have another Resource?")
 
         self.assertEqual(field.value_type, "resource")
         self.assertEqual(field.description,
