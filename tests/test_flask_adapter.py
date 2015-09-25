@@ -62,8 +62,8 @@ class FlaskAdapterTests(unittest.TestCase):
 
 
     def test_successful_json_post_with_required_params(self):
-        # month is required in the endpoint definition, so we must pass
-        # it in here
+        # this is the same as the above post, but passes json in the
+        # request body, instead of x-www-form-urlencoded
         resp = self.app.post_json('/api/time/parse', {'month': 2})
 
         self.assertEqual(resp.status_code, 200)

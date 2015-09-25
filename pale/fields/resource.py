@@ -31,7 +31,8 @@ class ResourceField(BaseField):
     def doc_dict(self):
         doc = super(ResourceField, self).doc_dict()
         doc['resource_type'] = self.resource_type._value_type
-        doc['default_fields'] = self.subfields
+        doc['default_fields'] = list(self.subfields)
+        return doc
 
 
     def render(self, obj, name, context):
