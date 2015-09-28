@@ -236,3 +236,36 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(required_scope_arg,
                 "hello.world and.goodbye.mars",
                 ['hello.world', 'and.goodbye.mars'])
+
+
+    def test_string_list_argument(self):
+        comma_separated_string_list = StringListArgument('test string list arg',
+                separator=',',
+                trim_whitespace=False,
+                required=True)
+        self.expect_invalid_argument(comma_separated_string_list, None)
+        self.expect_valid_argument(comma_separated_string_list, "hello world",
+                ['hello world'])
+        self.expect_valid_argument(comma_separated_string_list, "hello,world",
+                ['hello', 'world'])
+        self.expect_valid_argument(comma_separated_string_list, "hello, world",
+                ['hello', ' world'])
+
+        # it can also handle querystring lists, in which case, it'll get a list
+        # directly, rather than a value-separated string
+        self.expect_valid_argument(comma_separated_string_list,
+                ['hello', 'world'],
+                ['hello', 'world'])
+        self.expect_valid_argument(comma_separated_string_list,
+                ['hello', ' world'],
+                ['hello', ' world'])
+
+        comma_separated_string_list.trim_whitespace = True
+        self.expect_valid_argument(comma_separated_string_list, "hello, world",
+                ['hello', 'world'])
+        self.expect_valid_argument(comma_separated_string_list,
+                ['hello', 'world'],
+                ['hello', 'world'])
+        self.expect_valid_argument(comma_separated_string_list,
+                ['hello', ' world'],
+                ['hello', 'world'])

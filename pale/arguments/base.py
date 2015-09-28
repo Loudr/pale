@@ -99,12 +99,13 @@ class ListArgument(BaseArgument):
     list_item_type = "*"
 
     def __init__(self, *args, **kwargs):
-        self.list_item_type = kwargs.pop('item_type', "*")
+        self.list_item_type = kwargs.pop('item_type', self.list_item_type)
         super(ListArgument, self).__init__(*args, **kwargs)
 
     def _validate_required(self, item, name):
         super(ListArgument, self)._validate_required(item, name)
         # should we also validate that the list is not empty?
+
 
     def validate_items(self, input_list):
         """Validates that items in the list are of the type specified.
@@ -137,9 +138,5 @@ class ListArgument(BaseArgument):
             return item
 
         item_list = list(item)
-
-        validated_list = item_list
-        if self.list_item_type != "*":
-            validated_list = self.validate_items(item_list)
-
+        validated_list = self.validate_items(item_list)
         return validated_list
