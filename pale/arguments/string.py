@@ -8,6 +8,7 @@ class StringArgument(BaseArgument):
 
     def validate(self, item, item_name):
         if item is None:
+            # TODO: should we also set the default here if item is empty string?
             item = self.default
 
         self._validate_type(item, item_name)
