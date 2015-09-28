@@ -8,6 +8,7 @@ class StringArgument(BaseArgument):
 
     def validate(self, item, item_name):
         if item is None:
+            # TODO: should we also set the default here if item is empty string?
             item = self.default
 
         self._validate_type(item, item_name)
@@ -38,17 +39,22 @@ class StringListArgument(ListArgument):
 
     def __init__(self, *args, **kwargs):
         self.separator = kwargs.pop('separator', ' ')
+        self.trim_whitespace = kwargs.pop('trim_whitespace', False)
         super(StringListArgument, self).__init__(*args, **kwargs)
 
-    def validate(self, item, item_name):
-        if item is None:
-            item = self.default
+    def validate(self, item_list, item_name):
+        if item_list is None:
+            item_list = self.default
 
-        if isinstance(item, (str, unicode)):
-            item = item.split(self.separator)
+        if isinstance(item_list, (str, unicode)):
+            item_list = item_list.split(self.separator)
+
+        if self.trim_whitespace:
+            item_list = [ item.strip() for item in item_list ]
 
         # list validation
-        item = super(StringListArgument, self).validate(item, item_name)
-        if item is not None:
-            item = [unicode(val) for val in item]
-        return item
+        item_list = super(StringListArgument, self).validate(item_list,
+                                                             item_name)
+        if item_list is not None:
+            item_list = [unicode(val) for val in item_list]
+        return item_list
