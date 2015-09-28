@@ -281,3 +281,7 @@ class ArgumentTests(unittest.TestCase):
                 [True, True, True, False])
         self.expect_invalid_argument(required_bool_list_arg,
                 ['true', 'True', '1', 'false', 'hello, world'])
+
+        optional_list_arg = ListArgument('test list arg',
+                item_type=StringArgument('a string'))
+        self.expect_valid_argument(optional_list_arg, None, None)
