@@ -85,7 +85,6 @@ class BaseArgument(BaseField):
         return doc
 
 
-
 class ListArgument(BaseArgument):
     """A basic List Argument type, with flexible type support.
 
@@ -139,6 +138,7 @@ class ListArgument(BaseArgument):
 
         item_list = list(item)
 
+        validated_list = item_list
         if self.list_item_type != "*":
             validated_list = self.validate_items(item_list)
 

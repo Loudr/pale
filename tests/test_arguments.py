@@ -226,3 +226,13 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(min_max_float_arg, '0.567235', 0.567235)
         self.expect_valid_argument(min_max_float_arg, '0', 0.0)
         self.expect_valid_argument(min_max_float_arg, '1', 1.0)
+
+
+    def test_scope_argument(self):
+        required_scope_arg = ScopeArgument('test scope arg', required=True)
+        self.expect_invalid_argument(required_scope_arg, None)
+        self.expect_valid_argument(required_scope_arg, "hello world",
+                ['hello', 'world'])
+        self.expect_valid_argument(required_scope_arg,
+                "hello.world and.goodbye.mars",
+                ['hello.world', 'and.goodbye.mars'])
