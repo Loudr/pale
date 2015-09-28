@@ -16,6 +16,7 @@ class BaseArgument(BaseField):
     The ArgumentError will generate an HTTP 422 Unprocessable Entity response,
     and propagate the message of the exception to the caller.
     """
+    allowed_types = (object,)
 
     def __init__(self,
             short_doc,

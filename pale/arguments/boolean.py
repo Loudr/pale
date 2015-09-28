@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from pale.errors import ArgumentError
 from .base import BaseArgument
 
 class BooleanArgument(BaseArgument):
@@ -10,15 +12,19 @@ class BooleanArgument(BaseArgument):
         if isinstance(item, (str, unicode)):
             # coerce string types to bool, since we might get a string type
             # from the HTTP library
-            val = item
-            if val == 'true' or val == 'True':
+            val = item.lower()
+            if val == 'true':
                 item = True
-            elif val == 'false' or val == 'False':
+            elif val == 'false':
                 item = False
+            else:
+                raise ArgumentError(item_name,
+                        "Invalid string value '%s'. "
+                        "Boolean arguments must be either 'true' or 'false'.")
 
         self._validate_type(item, item_name)
 
         if self.required is True and item is None:
-            raise ArgumentError("This argument is required.")
+            raise ArgumentError(item_name, "This argument is required.")
 
         return item
