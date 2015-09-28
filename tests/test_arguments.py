@@ -142,3 +142,49 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(min_max_int_arg, 9, 9)
         self.expect_valid_argument(min_max_int_arg, 0, 0)
         self.expect_valid_argument(min_max_int_arg, 5, 5)
+
+    def test_float_arguments(self):
+        required_float_arg = FloatArgument('test float arg', required=True)
+        self.expect_invalid_argument(required_float_arg, 'i am not a float')
+        # single characters aren't accidentally converted to ascii values
+        self.expect_invalid_argument(required_float_arg, 'Q')
+        self.expect_invalid_argument(required_float_arg, None)
+        self.expect_valid_argument(required_float_arg, '123', 123.0)
+        self.expect_valid_argument(required_float_arg, '123.45', 123.45)
+        self.expect_valid_argument(required_float_arg, '-159', -159.0)
+
+        optional_float_arg = FloatArgument('test float arg')
+        self.expect_invalid_argument(optional_float_arg, 'i am not a float')
+        self.expect_valid_argument(optional_float_arg, None, None)
+        self.expect_valid_argument(optional_float_arg, '3.14159', 3.14159)
+
+        default_float_arg = FloatArgument('test float arg', default=1.5)
+        self.expect_invalid_argument(default_float_arg, 'i am not a float')
+        self.expect_valid_argument(default_float_arg, None, 1.5)
+        self.expect_valid_argument(default_float_arg, 42.245, 42.245)
+
+        min_float_arg = FloatArgument('test float arg', min_value=0.2)
+        self.expect_invalid_argument(min_float_arg, 'i am not a float')
+        self.expect_invalid_argument(min_float_arg, '-1.589')
+        self.expect_invalid_argument(min_float_arg, '0.1')
+        self.expect_valid_argument(min_float_arg, '0.2', 0.2)
+        self.expect_valid_argument(min_float_arg, '12.245', 12.245)
+
+        max_float_arg = FloatArgument('test float arg', max_value=100.0)
+        self.expect_invalid_argument(max_float_arg, 'i am not a float')
+        self.expect_invalid_argument(max_float_arg, '158.9')
+        self.expect_invalid_argument(max_float_arg, '100.1')
+        self.expect_valid_argument(max_float_arg, '0.1', 0.1)
+        self.expect_valid_argument(max_float_arg, '99.9', 99.9)
+        self.expect_valid_argument(max_float_arg, '-102.245', -102.245)
+
+        min_max_float_arg = FloatArgument('test float arg',
+                min_value=0.0, max_value=1.0)
+        self.expect_invalid_argument(min_max_float_arg, 'i am not a float')
+        self.expect_invalid_argument(min_max_float_arg, '1.1')
+        self.expect_invalid_argument(min_max_float_arg, '-102.245')
+        self.expect_invalid_argument(min_max_float_arg, '99.9')
+        self.expect_valid_argument(min_max_float_arg, '0.1', 0.1)
+        self.expect_valid_argument(min_max_float_arg, '0.567235', 0.567235)
+        self.expect_valid_argument(min_max_float_arg, '0', 0.0)
+        self.expect_valid_argument(min_max_float_arg, '1', 1.0)
