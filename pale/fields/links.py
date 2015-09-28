@@ -19,9 +19,11 @@ class RelativeLinksField(BaseField):
     """
     value_type = "relative links"
 
-    def __init__(self, description, details=None, link_generators=[]):
-        self.description = description
-        self.details = details
+    def __init__(self, description, link_generators=[], **kwargs):
+        super(RelativeLinksField, self).__init__(
+                self.value_type,
+                description,
+                **kwargs)
         self.link_generators = link_generators
 
 
