@@ -20,7 +20,7 @@ class ArgumentTests(unittest.TestCase):
             validated = arg_inst.validate(value, 'test item')
 
 
-    def test_builtin_arguments(self):
+    def test_boolean_arguments(self):
         required_bool_arg = BooleanArgument('test arg', required=True)
         self.expect_valid_argument(required_bool_arg, 'true', True)
         self.expect_valid_argument(required_bool_arg, 'TRUE', True)
@@ -32,3 +32,12 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(required_bool_arg, 'FaLSe', False)
         self.expect_invalid_argument(required_bool_arg, None)
         self.expect_invalid_argument(required_bool_arg, 'hello')
+
+        # allow 0/1 integers, but not other ints
+        self.expect_valid_argument(required_bool_arg, '0', False)
+        self.expect_valid_argument(required_bool_arg, '1', True)
+        self.expect_invalid_argument(required_bool_arg, '-241')
+        self.expect_invalid_argument(required_bool_arg, '241')
+        self.expect_invalid_argument(required_bool_arg, '0.0')
+        self.expect_invalid_argument(required_bool_arg, '1.0')
+        self.expect_invalid_argument(required_bool_arg, '1.234')

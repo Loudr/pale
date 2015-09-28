@@ -13,14 +13,15 @@ class BooleanArgument(BaseArgument):
             # coerce string types to bool, since we might get a string type
             # from the HTTP library
             val = item.lower()
-            if val == 'true':
+            if val == 'true' or val == '1':
                 item = True
-            elif val == 'false':
+            elif val == 'false' or val == '0':
                 item = False
             else:
                 raise ArgumentError(item_name,
                         "Invalid string value '%s'. "
-                        "Boolean arguments must be either 'true' or 'false'.")
+                        "Boolean arguments must be either 'true' or 'false'."
+                        % (val,))
 
         self._validate_type(item, item_name)
 
