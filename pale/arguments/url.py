@@ -8,7 +8,9 @@ from pale.errors import ArgumentError
 
 class URLArgument(StringArgument):
 
-    path_only = False
+    def __init__(self, *args, **kwargs):
+        self.path_only = kwargs.pop('path_only', False)
+        super(URLArgument, self).__init__(*args, **kwargs)
 
     def validate_url(self, original_string):
         """Returns the original string if it was valid, raises an argument
@@ -32,7 +34,7 @@ class URLArgument(StringArgument):
         except AssertionError as e:
             raise ArgumentError(self.item_name,
                     "The input you've provided is not a valid URL.")
-        return original_string
+        return pieces
 
     def validate(self, item, item_name):
         self.item_name = item_name

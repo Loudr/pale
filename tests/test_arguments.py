@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
+import urlparse
 
 from pale import Endpoint
 from pale.arguments import (BaseArgument, BooleanArgument, FloatArgument,
@@ -89,6 +90,42 @@ class ArgumentTests(unittest.TestCase):
                 None, 'hello tests')
 
 
+    def test_url_arguments(self):
+        required_url_arg = URLArgument('test url arg', required=True)
+        google_url = urlparse.urlparse('https://www.google.com/')
+        ftp_url = urlparse.urlparse('ftp://www.google.com/')
+        url_path = urlparse.urlparse('/foo/bar/baz')
+        url_path_with_query = urlparse.urlparse('/foo/bar/baz?query=hi')
+        url_path_with_fragment = urlparse.urlparse('/foo/bar/baz#hello')
+        url_path_with_query_fragment = urlparse.urlparse(
+                '/foo/bar/baz?query=hi#hello')
+
+        self.expect_invalid_argument(required_url_arg, None)
+        self.expect_invalid_argument(required_url_arg, '')
+        self.expect_invalid_argument(required_url_arg, ftp_url.geturl())
+        self.expect_invalid_argument(required_url_arg, 'i am not a url')
+        self.expect_invalid_argument(required_url_arg, url_path.geturl())
+        self.expect_valid_argument(required_url_arg, google_url.geturl(),
+                google_url)
+
+        optional_url_arg = URLArgument('test string arg', required=False)
+        self.expect_valid_argument(optional_url_arg, None, None)
+        self.expect_valid_argument(optional_url_arg,
+                google_url.geturl(), google_url)
+
+        url_path_arg = URLArgument('test string arg', path_only=True)
+        self.expect_invalid_argument(url_path_arg, google_url.geturl())
+        self.expect_valid_argument(url_path_arg, url_path.geturl(),
+                url_path)
+        self.expect_valid_argument(url_path_arg,
+                url_path_with_query.geturl(), url_path_with_query)
+        self.expect_valid_argument(url_path_arg,
+                url_path_with_fragment.geturl(), url_path_with_fragment)
+        self.expect_valid_argument(url_path_arg,
+                url_path_with_query_fragment.geturl(),
+                url_path_with_query_fragment)
+
+
     def test_integer_arguments(self):
         required_int_arg = IntegerArgument('test integer arg', required=True)
         self.expect_invalid_argument(required_int_arg, 'i am not an int')
@@ -142,6 +179,7 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(min_max_int_arg, 9, 9)
         self.expect_valid_argument(min_max_int_arg, 0, 0)
         self.expect_valid_argument(min_max_int_arg, 5, 5)
+
 
     def test_float_arguments(self):
         required_float_arg = FloatArgument('test float arg', required=True)
