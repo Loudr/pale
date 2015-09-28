@@ -87,3 +87,58 @@ class ArgumentTests(unittest.TestCase):
                 'hello, world', 'hello, world')
         self.expect_valid_argument(required_default_string_arg,
                 None, 'hello tests')
+
+
+    def test_integer_arguments(self):
+        required_int_arg = IntegerArgument('test integer arg', required=True)
+        self.expect_invalid_argument(required_int_arg, 'i am not an int')
+        # single characters aren't accidentally converted to ascii values
+        self.expect_invalid_argument(required_int_arg, 'Q')
+        self.expect_invalid_argument(required_int_arg, None)
+        self.expect_valid_argument(required_int_arg, '123', 123)
+        # no floats
+        self.expect_invalid_argument(required_int_arg, '123.45')
+        self.expect_valid_argument(required_int_arg, '-159', -159)
+
+        optional_int_arg = IntegerArgument('test integer arg')
+        self.expect_invalid_argument(optional_int_arg, 'i am not an int')
+        self.expect_valid_argument(optional_int_arg, None, None)
+        self.expect_valid_argument(optional_int_arg, '75', 75)
+
+        default_int_arg = IntegerArgument('test integer arg', default=42)
+        self.expect_invalid_argument(default_int_arg, 'i am not an int')
+        self.expect_valid_argument(default_int_arg, None, 42)
+        self.expect_valid_argument(default_int_arg, '33', 33)
+
+        default_required_int_arg = IntegerArgument('test integer arg',
+                default=42, required=True)
+        self.expect_invalid_argument(default_required_int_arg,
+                'i am not an int')
+        self.expect_valid_argument(default_required_int_arg, None, 42)
+        self.expect_valid_argument(default_required_int_arg, '33', 33)
+        self.expect_valid_argument(default_required_int_arg, '0', 0)
+
+        minimum_int_arg = IntegerArgument('test integer arg', min_value=9)
+        self.expect_invalid_argument(minimum_int_arg, 'i am not an int')
+        self.expect_invalid_argument(minimum_int_arg, 8)
+        self.expect_invalid_argument(minimum_int_arg, -873)
+        self.expect_valid_argument(minimum_int_arg, 9, 9)
+        self.expect_valid_argument(minimum_int_arg, 31423, 31423)
+
+        maximum_int_arg = IntegerArgument('test integer arg', max_value=9)
+        self.expect_invalid_argument(maximum_int_arg, 'i am not an int')
+        self.expect_invalid_argument(maximum_int_arg, 10)
+        self.expect_invalid_argument(maximum_int_arg, 873)
+        self.expect_valid_argument(maximum_int_arg, 9, 9)
+        self.expect_valid_argument(maximum_int_arg, -31423, -31423)
+
+        min_max_int_arg = IntegerArgument('test integer arg',
+                min_value=0, max_value=9)
+        self.expect_invalid_argument(min_max_int_arg, 'i am not an int')
+        self.expect_invalid_argument(min_max_int_arg, 10)
+        self.expect_invalid_argument(min_max_int_arg, 873)
+        self.expect_invalid_argument(min_max_int_arg, -1)
+        self.expect_invalid_argument(min_max_int_arg, -972151)
+        self.expect_valid_argument(min_max_int_arg, 9, 9)
+        self.expect_valid_argument(min_max_int_arg, 0, 0)
+        self.expect_valid_argument(min_max_int_arg, 5, 5)
