@@ -20,7 +20,7 @@ class ArgumentTests(unittest.TestCase):
             validated = arg_inst.validate(value, 'test item')
 
 
-    def test_boolean_arguments(self):
+    def test_boolean_argument(self):
         required_bool_arg = BooleanArgument('test bool arg', required=True)
         self.expect_valid_argument(required_bool_arg, 'true', True)
         self.expect_valid_argument(required_bool_arg, 'TRUE', True)
@@ -60,7 +60,7 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(required_default_bool_arg, 'true', True)
 
 
-    def test_string_arguments(self):
+    def test_string_argument(self):
         # damn near everything will probably come in as a string, so there's
         # only so much to test without regex matching
         required_string_arg = StringArgument('test string arg', required=True)
@@ -90,7 +90,7 @@ class ArgumentTests(unittest.TestCase):
                 None, 'hello tests')
 
 
-    def test_url_arguments(self):
+    def test_url_argument(self):
         required_url_arg = URLArgument('test url arg', required=True)
         google_url = urlparse.urlparse('https://www.google.com/')
         ftp_url = urlparse.urlparse('ftp://www.google.com/')
@@ -126,7 +126,7 @@ class ArgumentTests(unittest.TestCase):
                 url_path_with_query_fragment)
 
 
-    def test_integer_arguments(self):
+    def test_integer_argument(self):
         required_int_arg = IntegerArgument('test integer arg', required=True)
         self.expect_invalid_argument(required_int_arg, 'i am not an int')
         # single characters aren't accidentally converted to ascii values
@@ -181,7 +181,7 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(min_max_int_arg, 5, 5)
 
 
-    def test_float_arguments(self):
+    def test_float_argument(self):
         required_float_arg = FloatArgument('test float arg', required=True)
         self.expect_invalid_argument(required_float_arg, 'i am not a float')
         # single characters aren't accidentally converted to ascii values
@@ -269,3 +269,15 @@ class ArgumentTests(unittest.TestCase):
         self.expect_valid_argument(comma_separated_string_list,
                 ['hello', ' world'],
                 ['hello', 'world'])
+
+
+    def test_list_argument(self):
+        required_bool_list_arg = ListArgument('test list arg',
+                required=True,
+                item_type=BooleanArgument('Boolean items'))
+        self.expect_invalid_argument(required_bool_list_arg, 'true')
+        self.expect_valid_argument(required_bool_list_arg,
+                ['true', 'True', '1', 'false'],
+                [True, True, True, False])
+        self.expect_invalid_argument(required_bool_list_arg,
+                ['true', 'True', '1', 'false', 'hello, world'])
