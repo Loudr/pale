@@ -4,7 +4,7 @@ import unittest
 import urlparse
 
 from pale import Endpoint
-from pale.arguments import (BaseArgument, BooleanArgument, DictArgument,
+from pale.arguments import (BaseArgument, BooleanArgument, JsonDictArgument,
         FloatArgument, IntegerArgument, ListArgument, ScopeArgument,
         StringArgument, StringListArgument, URLArgument)
 from pale.errors import ArgumentError
@@ -290,7 +290,7 @@ class ArgumentTests(unittest.TestCase):
 
     def test_dict_argument(self):
         # because sometimes you want to pass a json dictionary...
-        required_dict_arg = DictArgument('test dict arg',
+        required_dict_arg = JsonDictArgument('test dict arg',
                 required=True,
                 field_map={
                     'foo': StringArgument("the thing's foo",
@@ -316,3 +316,36 @@ class ArgumentTests(unittest.TestCase):
 
         self.expect_invalid_argument(required_dict_arg,
                 json.dumps({'foo': 'bar'}))
+
+        self.expect_invalid_argument(required_dict_arg,
+                'this is not a json.')
+
+        self.expect_invalid_argument(required_dict_arg,
+                json.dumps({'foo': 'hi',
+                    'count': 10,
+                    'extra': 'something else'}))
+
+        allow_extras_dict_arg = JsonDictArgument('test dict arg',
+                required=True,
+                allow_extra_fields=True,
+                field_map={
+                    'foo': StringArgument("the thing's foo",
+                        required=True),
+                    'count': IntegerArgument('why not have a count?',
+                        required=True),
+                    'optionals': StringListArgument("more optional things")
+                })
+
+        self.expect_valid_argument(allow_extras_dict_arg,
+                json.dumps({
+                    'foo': 'hi',
+                    'count': 10,
+                    'extra': 'something else',
+                    'optionals': ['hello', 'how are you']
+                }),
+                {
+                    'foo': 'hi',
+                    'count': 10,
+                    'extra': 'something else',
+                    'optionals': ['hello', 'how are you']
+                })
