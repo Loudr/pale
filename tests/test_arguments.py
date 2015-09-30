@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 import unittest
 import urlparse
 
 from pale import Endpoint
-from pale.arguments import (BaseArgument, BooleanArgument, FloatArgument,
-        IntegerArgument, ListArgument, ScopeArgument, StringArgument,
-        StringListArgument, URLArgument)
+from pale.arguments import (BaseArgument, BooleanArgument, DictArgument,
+        FloatArgument, IntegerArgument, ListArgument, ScopeArgument,
+        StringArgument, StringListArgument, URLArgument)
 from pale.errors import ArgumentError
 
 
@@ -285,3 +286,33 @@ class ArgumentTests(unittest.TestCase):
         optional_list_arg = ListArgument('test list arg',
                 item_type=StringArgument('a string'))
         self.expect_valid_argument(optional_list_arg, None, None)
+
+
+    def test_dict_argument(self):
+        # because sometimes you want to pass a json dictionary...
+        required_dict_arg = DictArgument('test dict arg',
+                required=True,
+                field_map={
+                    'foo': StringArgument("the thing's foo",
+                        required=True),
+                    'count': IntegerArgument('why not have a count?',
+                        required=True),
+                    'optionals': StringListArgument("more optional things")
+                })
+
+
+        valid_dict = {
+            'foo': 'hello',
+            'count': 5
+        }
+        expected_dict = {
+            'foo': 'hello',
+            'count': 5,
+            'optionals': None
+        }
+        self.expect_valid_argument(required_dict_arg,
+                json.dumps(valid_dict),
+                expected_dict)
+
+        self.expect_invalid_argument(required_dict_arg,
+                json.dumps({'foo': 'bar'}))
