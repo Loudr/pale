@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+import json
+import logging
+
 from pale.errors import ArgumentError
 from pale.fields import BaseField
 
@@ -140,3 +144,49 @@ class ListArgument(BaseArgument):
         item_list = list(item)
         validated_list = self.validate_items(item_list)
         return validated_list
+
+
+class JsonDictArgument(BaseArgument):
+    allowed_types = (dict, set)
+
+    def __init__(self, *args, **kwargs):
+        self.field_map = kwargs.pop('field_map', {})
+        self.allow_extra_fields = kwargs.pop('allow_extra_fields', False)
+        super(JsonDictArgument, self).__init__(*args, **kwargs)
+
+
+    def validate(self, item, item_name):
+        if isinstance(item, basestring):
+            try:
+                item = json.loads(item)
+            except ValueError as e:
+                logging.error("couldn't serialize json from item: '%s'",
+                        item)
+                raise ArgumentError(item_name,
+                        "Invalid JSON string: '%s'" % item)
+
+        self._validate_type(item, item_name)
+
+        item_keys = item.keys()
+        field_keys = self.field_map.keys()
+        extra_keys = [ k for k in item_keys if k not in field_keys ]
+        missing_keys = [ k for k in field_keys if k not in item_keys ]
+
+        if len(extra_keys) > 0 and not self.allow_extra_fields:
+            raise ArgumentError(item_name,
+                    "Extra keys '%s' in item are not allowed" % extra_keys)
+
+        output_dict = dict()
+        for item_key, argument in self.field_map.iteritems():
+            item_value = item.get(item_key, None)
+
+            nested_item_name = "%s.%s" % (item_name, item_key)
+            validated = argument.validate(item_value, nested_item_name)
+            output_dict[item_key] = validated
+
+        for extra in extra_keys:
+            val = item[extra]
+            logging.debug("Adding unvalidated value '%s: %s' to json dict %s",
+                    extra, val, item_name)
+            output_dict[extra] = val
+        return output_dict
