@@ -9,6 +9,7 @@ from pale import config as pale_config
 from pale.arguments import BaseArgument
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
+from pale.resource import NoContentResource
 from pale.response import PaleRaisedResponse
 
 
@@ -303,7 +304,11 @@ class Endpoint(object):
                     unrendered_content, self._context)
 
         # now build the response
-        json_content = self._json_serializer.encode(rendered_content)
+        if rendered_content is None and \
+                isinstance(self._returns, NoContentResource):
+            json_content = ''
+        else:
+            json_content = self._json_serializer.encode(rendered_content)
         response_init_list[0] = json_content
         response_init_tuple = tuple(response_init_list)
         if self._response_class is None:
