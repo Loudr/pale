@@ -136,6 +136,9 @@ class NoContentResource(Resource):
     """An empty resource to represent endpoints that return No-Content."""
     _description = "The shell of a Resource where content used to be"
 
+    def _render_serializable(self, obj, context):
+        return None
+
 
 class DebugResource(Resource):
     """A schema-less resource to help with debugging.
