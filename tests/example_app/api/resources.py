@@ -23,6 +23,9 @@ class DateTimeResource(Resource):
     isoformat = StringField("The DateTime's ISO representation",
             property_name='iso')
 
+    eurodate = StringField("The date in DD.MM.YYYY format",
+            value=lambda item: item.timestamp.strftime("%d.%m.%Y"))
+
     name = StringField("Your DateTime's name",
             details="This value will be `null` on most DateTimes.  It's "
             "only set when the DateTime is created with `/parse_time/` "
