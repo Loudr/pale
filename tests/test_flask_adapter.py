@@ -60,6 +60,9 @@ class FlaskAdapterTests(unittest.TestCase):
 
         self.assertExpectedFields(returned_time, expected_fields)
 
+        self.assertIn('Cache-Control', resp.headers)
+        self.assertEqual('max-age=3', resp.headers['Cache-Control'])
+
 
     def test_successful_json_post_with_required_params(self):
         # this is the same as the above post, but passes json in the
