@@ -29,6 +29,8 @@ class FlaskAdapterTests(unittest.TestCase):
     def test_successful_get_without_params(self):
         resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("Access-Control-Allow-Origin", resp.headers)
+        self.assertEqual(resp.headers["Access-Control-Allow-Origin"], '*')
 
         # the 'time' value was set in the endpoint handler
         self.assertIn('time', resp.json_body)

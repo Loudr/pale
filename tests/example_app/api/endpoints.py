@@ -7,6 +7,11 @@ from tests.example_app.api.resources import (DateTimeResource,
         DateTimeRangeResource)
 
 
+def add_cors_header(context, response):
+    """Adds a CORs definition to the response header."""
+    response.headers['Access-Control-Allow-Origin'] = "*"
+
+
 class CurrentTimeEndpoint(Endpoint):
     """An API endpoint to get the current time."""
     _http_method = "GET"
@@ -17,6 +22,8 @@ class CurrentTimeEndpoint(Endpoint):
         "The DateTimeResource representation of the current time on the "
         "server.",
         fields=DateTimeResource._all_fields())
+
+    _pre_response_handlers = (add_cors_header, )
 
     def _handle(self, context):
         now = DateTimeModel(datetime.datetime.utcnow())
