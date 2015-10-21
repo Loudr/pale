@@ -159,6 +159,17 @@ class Endpoint(object):
                 HTML or XML or whatever in the future).
             The rendered JSON text is then returned as the response that should
             be sent by your HTTP framework's routing handler.
+                         *
+                         *
+        ``pre_response_handler``
+            The pre_response_handlers are sepcified by the Endpoint definition,
+            and enable manipulation of the response object before it is
+            returned to the client, but after the response is rendered.
+
+            Because these are instancemethods, they may share instance data
+            from `self` specified in the endpoint's `_handle` method.
+
+
         """
         try:
             self._create_context(request)
@@ -198,6 +209,11 @@ class Endpoint(object):
         except Exception as e:
             logging.exception(e)
             raise e
+
+        if hasattr(self, '_pre_response_handlers') and \
+                isinstance(self._pre_response_handlers, (list, tuple)):
+            for handler in self._pre_response_handlers:
+                handler(self._context, self._context.response)
 
         return self._context.response
 
