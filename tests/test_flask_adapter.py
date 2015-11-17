@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import datetime
 import unittest
 
 from webtest import TestApp
@@ -27,8 +29,11 @@ class FlaskAdapterTests(unittest.TestCase):
 
 
     def test_successful_get_without_params(self):
+        now = datetime.datetime.now()
         resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("Access-Control-Allow-Origin", resp.headers)
+        self.assertEqual(resp.headers["Access-Control-Allow-Origin"], '*')
 
         # the 'time' value was set in the endpoint handler
         self.assertIn('time', resp.json_body)
@@ -42,6 +47,8 @@ class FlaskAdapterTests(unittest.TestCase):
         expected_fields = DateTimeResource._all_fields()
 
         self.assertExpectedFields(returned_time, expected_fields)
+        self.assertEqual(returned_time['eurodate'],
+                now.strftime("%d.%m.%Y"))
 
 
     def test_successful_post_with_required_params(self):
