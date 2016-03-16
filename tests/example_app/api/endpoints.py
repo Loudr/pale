@@ -38,6 +38,8 @@ class ParseTimeEndpoint(Endpoint):
     _uri = "/time/parse"
     _route_name = "parse_time"
 
+    _default_cache = 'max-age=3'
+
 
     _returns = DateTimeResource(
             "The DateTimeResource corresponding to the timing "

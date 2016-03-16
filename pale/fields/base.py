@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+import types
+
 class BaseField(object):
     """The base class for all Fields and Arguments.
 
@@ -17,11 +20,21 @@ class BaseField(object):
                  value_type,
                  description,
                  details=None,
-                 property_name=None):
+                 property_name=None,
+                 value=None):
         self.value_type = value_type
         self.description = description
         self.details = details
         self.property_name = property_name
+        self.value_lambda = value
+
+        if self.value_lambda is not None:
+            assert isinstance(value, types.LambdaType), \
+                    "A Field's `value` parameter must be a lambda"
+            assert self.property_name is None, \
+                    ("Field does not support setting both `property_name` "
+                     "*AND* `value`.  Please pick one or the other")
+
 
     def _fix_up(self, cls, code_name):
         """Internal helper to name the field after its variable.
@@ -50,10 +63,15 @@ class BaseField(object):
         resources (or, for example, if you decide to implement attribute
         hiding at the field level instead of at the object level).
         """
-        attr_name = name
-        if self.property_name is not None:
-            attr_name = self.property_name
-        return getattr(obj, attr_name, None)
+        if self.value_lambda is not None:
+            val = self.value_lambda(obj)
+        else:
+            attr_name = name
+            if self.property_name is not None:
+                attr_name = self.property_name
+            val = getattr(obj, attr_name, None)
+        return val
+
 
     def doc_dict(self):
         """Generate the documentation for this field."""
@@ -64,9 +82,11 @@ class BaseField(object):
         }
         return doc
 
+
 class ListField(BaseField):
     """A Field that contains a list of Fields."""
     value_type = 'list'
+
 
     def __init__(self, description, item_type=BaseField, **kwargs):
         super(ListField, self).__init__(
@@ -74,6 +94,7 @@ class ListField(BaseField):
                 description,
                 **kwargs)
         self.item_type = item_type
+
 
     def doc_dict(self):
         doc = super(ListField, self).doc_dict()

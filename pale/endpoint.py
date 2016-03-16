@@ -45,6 +45,8 @@ class Endpoint(object):
     _response_class = None
     _json_serializer = PaleDefaultJSONEncoder()
 
+    _default_cache = 'no-cache'
+
 
     @classmethod
     def _fix_up_fields(cls):
@@ -333,6 +335,20 @@ class Endpoint(object):
             This is probably an issue with the pale HTTP adapter you're using,
             since that is where the response class is usually set.""")
         self._context.response = self._response_class(*response_init_tuple)
+
+        # patch up cache-control
+        updated_cache_ctrl_from_endpoint = False
+        if len(response_init_tuple) > 2:
+            # headers is the 3rd arg for both flask and webapp2
+            headers = response_init_tuple[2]
+            cache_ctrl = headers.get('Cache-Control')
+            if cache_ctrl is not None:
+                self._context.response.headers['Cache-Control'] = cache_ctrl
+                updated_ctrl_from_endpoint = True
+
+        if not updated_cache_ctrl_from_endpoint:
+            self._context.response.headers['Cache-Control'] = \
+                    self._default_cache
 
         # Add default json response type.
         self._context.response.headers["Content-Type"] = "application/json"
