@@ -349,3 +349,6 @@ class Endpoint(object):
         if not updated_cache_ctrl_from_endpoint:
             self._context.response.headers['Cache-Control'] = \
                     self._default_cache
+
+        # Add default json response type.
+        self._context.response.headers["Content-Type"] = "application/json"
