@@ -333,3 +333,6 @@ class Endpoint(object):
             This is probably an issue with the pale HTTP adapter you're using,
             since that is where the response class is usually set.""")
         self._context.response = self._response_class(*response_init_tuple)
+
+        # Add default json response type.
+        self._context.response.headers["Content-Type"] = "application/json"
