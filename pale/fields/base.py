@@ -84,6 +84,11 @@ class BaseField(object):
         }
         return doc
 
+class StaticItem(object):
+
+    def __init__(self, obj):
+        self.obj = obj
+
 class ListField(BaseField):
     """A Field that contains a list of Fields."""
 
@@ -121,7 +126,7 @@ class ListField(BaseField):
         lst = super(ListField, self).render(obj, name, context)
         renderer = self.item_type_instance.render
         for res in lst:
-            item = renderer(res, name, context)
+            item = renderer(StaticItem(res), 'obj', context)
             output.append(item)
         return output
 
