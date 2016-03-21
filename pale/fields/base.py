@@ -117,13 +117,15 @@ class ListField(BaseField):
 
     def render(self, obj, name, context):
         if obj is None:
-            return None
+            return []
 
         output = []
 
         # again, the base renderer basically just calls getattr.
         # We're expecting the attr to be a list, though.
         lst = super(ListField, self).render(obj, name, context)
+        if lst is None:
+            return []
         renderer = self.item_type_instance.render
         for res in lst:
             item = renderer(StaticItem(res), 'obj', context)
