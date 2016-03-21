@@ -16,6 +16,8 @@ class BaseField(object):
     include validation functionality.
     """
 
+    value_type = 'base'
+
     def __init__(self,
                  value_type,
                  description,
@@ -82,21 +84,44 @@ class BaseField(object):
         }
         return doc
 
-
 class ListField(BaseField):
     """A Field that contains a list of Fields."""
-    value_type = 'list'
 
+    value_type = 'list'
 
     def __init__(self, description, item_type=BaseField, **kwargs):
         super(ListField, self).__init__(
                 self.value_type,
                 description,
                 **kwargs)
+
+        # Item type initialization
         self.item_type = item_type
+        kd = {'description':'nested_list'}
+        if item_type is BaseField:
+            kd['value_type'] = 'base_field'
+        self.item_type_instance = self.item_type(
+            **kd
+            )
 
 
     def doc_dict(self):
         doc = super(ListField, self).doc_dict()
         doc['item_type'] = self.item_type.value_type
         return doc
+
+    def render(self, obj, name, context):
+        if obj is None:
+            return None
+
+        output = []
+
+        # again, the base renderer basically just calls getattr.
+        # We're expecting the attr to be a list, though.
+        lst = super(ListField, self).render(obj, name, context)
+        renderer = self.item_type_instance.render
+        for res in lst:
+            item = renderer(res, name, context)
+            output.append(item)
+        return output
+
