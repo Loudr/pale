@@ -5,7 +5,7 @@ class RelativeLinksField(BaseField):
 
     This field is inherently a list of relative links, but it's special in
     that it accepts a list of methods that get called to generate the links.
-    
+
     Each of these link generation methods should return a tuple with the
     name of the relative link, as well as the url, i.e.
 
@@ -30,7 +30,10 @@ class RelativeLinksField(BaseField):
     def render(self, obj, name, context):
         links = {}
         for renderer in self.link_generators:
-            name, val = renderer(obj)
+            _tup = renderer(obj)
+            if _tup is None:
+                continue
+            name, val = _tup
             links[name] = val
         if len(links) == 0:
             return None
