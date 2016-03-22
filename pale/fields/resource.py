@@ -46,9 +46,10 @@ class ResourceField(BaseField):
         return output
 
 
-class ResourceListField(ListField):
+class ResourceListField(BaseField):
     """A Field that contains a list of Fields."""
     item_type = ResourceField
+    value_type = 'resource_list'
 
     def __init__(self,
             description,
@@ -56,9 +57,10 @@ class ResourceListField(ListField):
             subfields=None,
             **kwargs):
         super(ResourceListField, self).__init__(
-                description,
-                item_type=self.item_type,
+                self.value_type,
+                description=description,
                 **kwargs)
+
         self.resource_type = resource_type
 
         if subfields is None:
@@ -89,3 +91,4 @@ class ResourceListField(ListField):
             item = renderer(res, context)
             output.append(item)
         return output
+
