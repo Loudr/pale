@@ -14,7 +14,6 @@ def pale_webapp2_request_handler_generator(pale_endpoint):
     instead of using functions like Flask, so we need to generate a new class
     for each pale endpoint.
     """
-    logging.info(pale_endpoint._route_name)
     def pale_handler(self, *args, **kwargs):
         return pale_endpoint._execute(self.request)
     cls = type(pale_endpoint._route_name,
@@ -42,14 +41,12 @@ def bind_pale_to_webapp2(pale_app_module,
                 % (type(pale_app_module), ))
 
     endpoints = pale.extract_endpoints(pale_app_module)
-    logging.info('extracted endpoints: %s', endpoints)
 
     for endpoint in endpoints:
         endpoint._set_response_class(RESPONSE_CLASS)
         method = endpoint._http_method
         name = endpoint._route_name
 
-        logging.info("adding endpoint %s to webapp!" % name)
         req_handler = pale_webapp2_request_handler_generator(endpoint)
 
         route_uri = endpoint._uri
@@ -62,10 +59,7 @@ def bind_pale_to_webapp2(pale_app_module,
                 name=name,
                 handler_method='pale_handler',
                 methods=[method])
-        logging.info("created route: %s", route)
         webapp_wsgiapplication.router.add(route)
-
-    logging.info("app router state: %s", webapp_wsgiapplication.router)
 
 
 class DefaultWebapp2Context(pale.context.DefaultContext):
