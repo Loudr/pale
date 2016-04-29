@@ -7,6 +7,15 @@ import pale
 RESPONSE_CLASS = webapp2.Response
 
 
+try:
+    """webapp2 does not support the PATCH method at the time this code was
+    written. This patch appends the PATCH method."""
+    allowed_methods = webapp2.WSGIApplication.allowed_methods
+    new_allowed_methods = allowed_methods.union(('PATCH',))
+    webapp2.WSGIApplication.allowed_methods = new_allowed_methods
+except Exception, exc:
+    logging.warn("Failed to monkeypatch webapp2: %r", exc)
+
 def pale_webapp2_request_handler_generator(pale_endpoint):
     """Generate a webapp2.RequestHandler class for the pale endpoint.
 
@@ -92,6 +101,7 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
         self.headers = request.headers
         self.cookies = request.cookies
         self.request = request
+        self.body = request.body
         self._raw_args = self.build_args_from_request(request)
         self.route_args = request.route_args
         self.route_kwargs = request.route_kwargs

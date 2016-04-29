@@ -1,3 +1,16 @@
+machine:
+  python:
+    version: 2.7.9
+
 dependencies:
   pre:
     - pip install -U -r tests/requirements.txt
+
+test:
+  pre:
+    - ln -s $CIRCLE_TEST_REPORTS/javascript.xml report.xml
+  override:
+    - nosetests --logging-clear-handlers --logging-level=INFO --with-xunit --xunit-file=$CIRCLE_TEST_REPORTS/python.xml:
+        parallel: true
+        files:
+            - tests/**/test*.py

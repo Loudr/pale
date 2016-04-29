@@ -7,9 +7,10 @@ import sys
 import arrow
 from pale import config as pale_config
 from pale.arguments import BaseArgument
+from pale.fields import ResourceField, ListField, ResourceListField
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
-from pale.resource import NoContentResource
+from pale.resource import NoContentResource, Resource, DebugResource
 from pale.response import PaleRaisedResponse
 
 
@@ -373,3 +374,130 @@ class Endpoint(object):
 
         # Add default json response type.
         self._context.response.headers["Content-Type"] = "application/json"
+
+
+class ResourcePatch(object):
+    """Represents a resource patch which is to be applied
+    to a given dictionary or object."""
+
+    def __init__(self, patch, resource):
+        self.patch = patch
+        self.resource = resource
+
+    def get_field_from_resource(self, field):
+        if isinstance(self.resource, DebugResource):
+            # no fields defined in a DebugResource
+            return None
+
+        try:
+            return self.resource._fields[field]
+        except KeyError:
+            raise APIError.BadRequest(
+                "Field '%s' is not expected." % field)
+
+    def get_resource_from_field(self, field):
+        assert isinstance(field, ResourceField)
+        return field.resource_type()
+
+    def cast_value(self, field, value):
+        if isinstance(field, ResourceListField):
+            if not isinstance(value, dict):
+                raise APIError.BadRequest(
+                    "Expected nested object in list for %s" % field)
+            try:
+                resource = field.resource_type()
+                new_object = {}
+                for k,v in value.iteritems():
+                    _field = resource._fields[k]
+                    if _field.property_name is not None:
+                        k = _field.property_name
+                    new_object[k] = self.cast_value(_field, v)
+                return resource._underlying_model(**new_object)
+            except Exception:
+                logging.exception(
+                    "Failed to cast value to _underlying_model of resource_type: %s" %
+                    getattr(field, 'resource_type', None))
+                raise
+
+        # TODO: Use field to cast field back into a value,
+        # if possible.
+        return value
+
+    def apply_to_dict(self, dt):
+        for k,v in self.patch.iteritems():
+            field = self.get_field_from_resource(k)
+            if isinstance(v, dict):
+                # Recursive application.
+                resource = self.get_resource_from_field(field)
+                patch = ResourcePatch(v, resource)
+                patch.apply_to_dict(dt[k])
+            elif isinstance(v, list):
+                if (not isinstance(field, ResourceListField) and
+                        not isinstance(field, ListField)):
+                    raise APIError.BadRequest(
+                        "List not expected for field '%s'" % k)
+                new_list = []
+                for itm in v:
+                    new_list.append(self.cast_value(field, itm))
+                dt[k] = new_list
+            else:
+                # Cast value and store
+                dt[k] = self.cast_value(field, v)
+
+    def apply_to_model(self, dt):
+        for k,v in self.patch.iteritems():
+            field = self.get_field_from_resource(k)
+            if isinstance(v, dict):
+                # Recursive application.
+                resource = self.get_resource_from_field(field)
+                patch = ResourcePatch(v, resource)
+                patch.apply_to_model(getattr(dt, k, None))
+            elif isinstance(v, list):
+                if (not isinstance(field, ResourceListField) and
+                        not isinstance(field, ListField)):
+                    raise APIError.BadRequest(
+                        "List not expected for field '%s'" % k)
+                new_list = []
+                for itm in v:
+                    new_list.append(self.cast_value(field, itm))
+
+                setattr(dt, k, new_list)
+            else:
+                # Cast value and set
+                setattr(dt, k, self.cast_value(field, v))
+
+
+class PatchEndpoint(Endpoint):
+    """Provides a base endpoint for implementing JSON Merge Patch requests.
+    See RFC 7386 @ https://tools.ietf.org/html/rfc7386
+    """
+
+    MERGE_CONTENT_TYPE = 'application/merge-patch+json'
+    _http_method = "PATCH"
+
+    def _handle_patch(self, context, patch):
+        raise NotImplementedError("%s should override _handle_patch" %
+            self.__class__.__name__)
+
+    def _handle(self, context):
+        resource = getattr(self, "_resource", None)
+        if not isinstance(resource, Resource):
+            raise NotImplementedError(
+                "%s needs to define _resource: Resource which will be patched" %
+                self.__class__.__name__)
+
+        if (context.headers.get('Content-Type').lower() !=
+                self.MERGE_CONTENT_TYPE):
+            raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
+                self.MERGE_CONTENT_TYPE)
+
+        try:
+            patch = ResourcePatch(patch=json.loads(context.body),
+                                  resource=resource)
+        except Exception, exc:
+            raise APIError.UnprocessableEntity(
+                "Could not decode JSON from request payload: %s" %
+                exc)
+
+        return self._handle_patch(context, patch)
+

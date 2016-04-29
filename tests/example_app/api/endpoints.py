@@ -1,7 +1,11 @@
 import datetime
 
-from pale import Endpoint
+from multiprocessing import Manager
+
+from pale import Endpoint, PatchEndpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
+from pale.resource import DebugResource
+from pale.errors.api_error import APIError
 from tests.example_app.models import DateTimeModel, DateTimeRangeModel
 from tests.example_app.api.resources import (DateTimeResource,
         DateTimeRangeResource)
@@ -116,3 +120,61 @@ class TimeRangeEndpoint(Endpoint):
         millis = context.args['duration']
         time_range = DateTimeRangeModel(millis*1000) # microseconds
         return {'range': time_range}
+
+"""
+Resource endpoints.
+We create a multiprocessing memory manager and shared
+dict to enable multithreaded support.
+This 'resource' data is used to test patching.
+"""
+
+BASE_RESOURCE = {
+    'key': 'value'
+}
+MANAGER = Manager()
+RESOURCE = MANAGER.dict(BASE_RESOURCE)
+
+class GetResourceEndpoint(Endpoint):
+    """Returns the 'resource' as it exists in memory.
+    """
+
+    _uri = "/resource"
+    _http_method = 'GET'
+    _route_name = "resource_get"
+
+    _returns = DebugResource("app resource.")
+
+    def _handle(self, context):
+        return dict(RESOURCE)
+
+class ResetResourceEndpoint(Endpoint):
+    """Returns the 'resource' as it exists in memory.
+    """
+
+    _uri = "/resource/reset"
+    _http_method = 'POST'
+    _route_name = "resource_reset"
+
+    _returns = DebugResource("app resource.")
+
+    def _handle(self, context):
+        RESOURCE.clear()
+        RESOURCE.update(BASE_RESOURCE)
+        return dict(RESOURCE)
+
+class ResourcePatchEndpoint(PatchEndpoint):
+    """Patches a resource which is local to each instance of the app.
+    """
+
+    _uri = "/resource"
+    _route_name = "resource_patch"
+
+    _resource = DebugResource("resource patch.")
+    _returns = DebugResource("app resource.")
+
+    def _handle_patch(self, context, patch):
+        data = dict(RESOURCE)
+        patch.apply_to_dict(data)
+        RESOURCE.update(data)
+        return dict(RESOURCE)
+

@@ -12,14 +12,14 @@ from . import arguments
 from . import config
 from . import context
 from . import doc
-from .endpoint import Endpoint
+from .endpoint import Endpoint, PatchEndpoint, ResourcePatch
 from .resource import NoContentResource, Resource, ResourceList
 
 try:
     """Google App Engine won't let you read a file from the file system like
     this, so __version__ will be different on a GAE server when used in
     production.  In real world use cases, we don't really expect this to be
-    a problem, since the __version__ string is usually just useful for 
+    a problem, since the __version__ string is usually just useful for
     debugging."""
     with open(path.join(path.dirname(__file__), 'VERSION')) as version_file:
         __version__ = version_file.read().strip()
@@ -59,7 +59,8 @@ def extract_endpoints(api_module):
     instances = []
 
     for cls in classes:
-        if cls != Endpoint and Endpoint in inspect.getmro(cls):
+        if cls not in (Endpoint, PatchEndpoint) and \
+                Endpoint in inspect.getmro(cls):
             instances.append(cls())
     return instances
 
