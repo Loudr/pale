@@ -3,7 +3,7 @@ import unittest
 
 from pale.doc import generate_doc_dict, generate_json_docs
 
-COUNT_ENDPOINTS = 4
+COUNT_ENDPOINTS = 6
 """Number of endpoints we expect to find in example_app."""
 
 class PaleDocTests(unittest.TestCase):

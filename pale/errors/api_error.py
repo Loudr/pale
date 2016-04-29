@@ -24,3 +24,9 @@ class APIError(BasePaleError):
         err = cls(message)
         err.http_status_code = 415
         return err
+
+    @classmethod
+    def BadRequest(cls, message):
+        err = cls(message)
+        err.http_status_code = 400
+        return err

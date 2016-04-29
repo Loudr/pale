@@ -115,15 +115,30 @@ class FlaskAdapterTests(unittest.TestCase):
         expected_fields = DateTimeResource._all_fields()
         self.assertExpectedFields(end, expected_fields)
 
-    def test_patch(self):
+    def test_resource(self):
 
+        # Start by resetting the resource.
+        # (multiple test runs from the same process will fail otherwise)
+        resp = self.app.post('/api/resource/reset')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json, {'key': 'value'})
+
+        # Test retrieving the resource.
+        resp = self.app.get('/api/resource')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json, {'key': 'value'})
+
+        # Test patching the resource.
         # Without the correct Content-Type, we expect a 415 error.
         self.assertRaises(AppError, self.app.patch_json,
-            '/api/patch/resource', {'this': 'that'})
+            '/api/resource', {'key': 'value2'})
 
-        resp = self.app.patch_json('/api/patch/resource', {'this': 'that'},
+        resp = self.app.patch_json('/api/resource', {'key': 'value2'},
             headers={'Content-Type': 'application/merge-patch+json'})
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json, {'key': 'value2'})
 
-        # print resp.json
-        # assert False, "OK"
+        # Test get to ensure the resource persists.
+        resp = self.app.get('/api/resource')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json, {'key': 'value2'})

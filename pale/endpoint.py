@@ -9,7 +9,7 @@ from pale import config as pale_config
 from pale.arguments import BaseArgument
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
-from pale.resource import NoContentResource
+from pale.resource import NoContentResource, Resource, DebugResource
 from pale.response import PaleRaisedResponse
 
 
@@ -353,6 +353,43 @@ class Endpoint(object):
         # Add default json response type.
         self._context.response.headers["Content-Type"] = "application/json"
 
+
+class ResourcePatch(object):
+    """Represents a resource patch which is to be applied
+    to a given dictionary or object."""
+
+    def __init__(self, patch, resource):
+        self.patch = patch
+        self.resource = resource
+
+    def get_field_from_resource(self, field):
+        if isinstance(self.resource, DebugResource):
+            # no fields defined in a DebugResource
+            return self.resource
+
+        try:
+            return self.resource._fields[field]
+        except KeyError:
+            raise APIError.BadRequest(
+                "Field '%s' is not expected." % field)
+
+    @classmethod
+    def cast_value(cls, field, value):
+        # TODO: Use field to cast field back into a value,
+        # if possible.
+        return value
+
+    def apply_to_dict(self, dt):
+        for k,v in self.patch.iteritems():
+            field = self.get_field_from_resource(k)
+            if isinstance(v, dict):
+                # Recursive application.
+                patch = ResourcePatch(v, field)
+                patch.apply_to_dict(dt[k])
+            else:
+                # Cast value and store
+                dt[k] = self.cast_value(field, v)
+
 class PatchEndpoint(Endpoint):
     """Provides a base endpoint for implementing JSON Merge Patch requests.
     See RFC 7386 @ https://tools.ietf.org/html/rfc7386
@@ -361,21 +398,29 @@ class PatchEndpoint(Endpoint):
     MERGE_CONTEXT_TYPE = 'application/merge-patch+json'
     _http_method = "PATCH"
 
-    def _handle_patch(self, context, data):
+    def _handle_patch(self, context, patch):
         raise NotImplementedError("%s should override _handle_patch" %
             self.__class__.__name__)
 
     def _handle(self, context):
+        resource = getattr(self, "_resource", None)
+        if not isinstance(resource, Resource):
+            raise NotImplementedError(
+                "%s needs to define _resource: Resource which will be patched" %
+                self.__class__.__name__)
+
         if (context.headers.get('Content-Type').lower() !=
                 self.MERGE_CONTEXT_TYPE):
             raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
                 self.MERGE_CONTEXT_TYPE)
 
         try:
-            data = json.loads(context.body)
-        except:
+            patch = ResourcePatch(patch=json.loads(context.body),
+                                  resource=resource)
+        except Exception, exc:
             raise APIError.UnprocessableEntity(
-                "Could not decode JSON from request payload.")
+                "Could not decode JSON from request payload: %s" %
+                exc)
 
-        return self._handle_patch(context, data)
+        return self._handle_patch(context, patch)
 
