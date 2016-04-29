@@ -7,6 +7,7 @@ import sys
 import arrow
 from pale import config as pale_config
 from pale.arguments import BaseArgument
+from pale.fields import ResourceField
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
 from pale.resource import NoContentResource, Resource, DebugResource
@@ -365,13 +366,17 @@ class ResourcePatch(object):
     def get_field_from_resource(self, field):
         if isinstance(self.resource, DebugResource):
             # no fields defined in a DebugResource
-            return self.resource
+            return None
 
         try:
             return self.resource._fields[field]
         except KeyError:
             raise APIError.BadRequest(
                 "Field '%s' is not expected." % field)
+
+    def get_resource_from_field(self, field):
+        assert isinstance(field, ResourceField)
+        return field.resource_type()
 
     @classmethod
     def cast_value(cls, field, value):
@@ -384,20 +389,25 @@ class ResourcePatch(object):
             field = self.get_field_from_resource(k)
             if isinstance(v, dict):
                 # Recursive application.
-                patch = ResourcePatch(v, field)
+                resource = self.get_resource_from_field(field)
+                patch = ResourcePatch(v, resource)
                 patch.apply_to_dict(dt[k])
+            elif isinstance(v, list):
+                raise NotImplementedError()
             else:
                 # Cast value and store
                 dt[k] = self.cast_value(field, v)
 
     def apply_to_model(self, dt):
-        model = self.resource._underlying_model
         for k,v in self.patch.iteritems():
             field = self.get_field_from_resource(k)
             if isinstance(v, dict):
                 # Recursive application.
-                patch = ResourcePatch(v, field)
-                patch.apply_to_model(dt[k])
+                resource = self.get_resource_from_field(field)
+                patch = ResourcePatch(v, resource)
+                patch.apply_to_model(getattr(dt, k, None))
+            elif isinstance(v, list):
+                raise NotImplementedError()
             else:
                 # Cast value and set
                 setattr(dt, k, self.cast_value(field, v))

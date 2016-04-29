@@ -5,13 +5,26 @@ from pale import Resource, ResourcePatch
 from pale.fields import (BaseField, IntegerField, ListField, ResourceField,
         ResourceListField, StringField)
 
+
+class Stats(object):
+    def __init__(self):
+        self.logins = 0
+
+
+class StatsResource(Resource):
+    _value_type = 'Test "stats" resource for patches'
+    _underlying_model = Stats
+
+    logins = IntegerField("Number of logins")
+
+
 class User(object):
     def __init__(self, id, username):
-        self.logins = 0
         assert isinstance(username, basestring)
         self.username = username
         assert isinstance(id, basestring)
         self.id = id
+        self.stats = Stats()
 
 
 class UserResource(Resource):
@@ -19,8 +32,9 @@ class UserResource(Resource):
     _underlying_model = User
 
     username = StringField("Username")
-    logins = IntegerField("Number of logins")
     id = StringField("User ID")
+    stats = ResourceField("Test of a nested resource",
+        resource_type=StatsResource)
 
 
 class ResourcePatchTests(unittest.TestCase):
@@ -37,15 +51,22 @@ class ResourcePatchTests(unittest.TestCase):
 
         patch_data = {
             'username': 'ammoses',
-            'logins': 12
+            'stats': {
+                'logins': 12
+            }
         }
 
         user_resouce = UserResource()
+
+        dt = user_resouce._render_serializable(user, None)
+        self.assertEqual(dt['username'], 'soundofjw')
+        self.assertEqual(dt['stats']['logins'], 0)
+
         patch = ResourcePatch(patch_data, user_resouce)
 
         patch.apply_to_model(user)
         dt = user_resouce._render_serializable(user, None)
         self.assertEqual(dt['username'], 'ammoses')
-        self.assertEqual(dt['logins'], 12)
+        self.assertEqual(dt['stats']['logins'], 12)
 
 
