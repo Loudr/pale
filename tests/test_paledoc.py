@@ -3,6 +3,9 @@ import unittest
 
 from pale.doc import generate_doc_dict, generate_json_docs
 
+COUNT_ENDPOINTS = 4
+"""Number of endpoints we expect to find in example_app."""
+
 class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
@@ -32,8 +35,8 @@ class PaleDocTests(unittest.TestCase):
 
     def test_endpoint_without_args_docs(self):
         endpoints = self.doc_dict['endpoints']
-        # we defined three endpoints in the example app
-        self.assertEqual(len(endpoints), 3)
+        # we defined n endpoints in the example app
+        self.assertEqual(len(endpoints), COUNT_ENDPOINTS)
 
         # the current time endpoint
         current_time_doc = endpoints['current_time']
@@ -51,8 +54,8 @@ class PaleDocTests(unittest.TestCase):
 
     def test_endpoint_with_args_docs(self):
         endpoints = self.doc_dict['endpoints']
-        # we defined three endpoints in the example app
-        self.assertEqual(len(endpoints), 3)
+        # we defined n endpoints in the example app
+        self.assertEqual(len(endpoints), COUNT_ENDPOINTS)
 
         # the current time endpoint
         parse_time_doc = endpoints['parse_time']
@@ -129,8 +132,8 @@ class PaleDocTests(unittest.TestCase):
 
     def test_resource_doc(self):
         resources = self.doc_dict['resources']
-        # we defined two resources in the example app
-        self.assertEqual(len(resources), 2)
+        # we defined n resources in the example app
+        self.assertEqual(len(resources), 3)
 
         resource = resources['DateTime Resource']
         self.assertEqual(resource['name'], 'DateTime Resource')

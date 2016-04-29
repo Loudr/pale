@@ -2,6 +2,8 @@ import datetime
 
 from pale import Endpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
+from pale.resource import DebugResource
+from pale.errors.api_error import APIError
 from tests.example_app.models import DateTimeModel, DateTimeRangeModel
 from tests.example_app.api.resources import (DateTimeResource,
         DateTimeRangeResource)
@@ -116,3 +118,26 @@ class TimeRangeEndpoint(Endpoint):
         millis = context.args['duration']
         time_range = DateTimeRangeModel(millis*1000) # microseconds
         return {'range': time_range}
+
+
+
+
+MERGE_TYPE = 'application/merge-patch+json'
+class ResourcePatchEndpoint(Endpoint):
+    """
+    """
+
+    _http_method = "PATCH"
+    _uri = "/patch/resource"
+    _route_name = "resource_patch"
+
+    _returns = DebugResource("HM")
+
+    def _handle(self, context):
+        if not context.headers.get('Content-Type').lower() == MERGE_TYPE:
+            raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
+                MERGE_TYPE)
+
+        print context.body
+        return {'yo': 'yo'}
+

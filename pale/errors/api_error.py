@@ -19,3 +19,8 @@ class APIError(BasePaleError):
         err.http_status_code = 422
         return err
 
+    @classmethod
+    def UnsupportedMedia(cls, message):
+        err = cls(message)
+        err.http_status_code = 415
+        return err

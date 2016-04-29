@@ -77,6 +77,7 @@ class DefaultFlaskContext(pale.context.DefaultContext):
         self.headers = request.headers
         self.cookies = request.cookies
         self.request = request
+        self.body = request.data
         self._raw_args = self.build_args_from_request(request)
         self.route_args = request.view_args
         self.current_user = None

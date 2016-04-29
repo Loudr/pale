@@ -26,7 +26,7 @@ class Resource(object):
         `Endpoint` does something similar for `arguments`.
         """
         cls._fields = {}
-        if cls.__module__ == __name__:
+        if cls.__module__ == __name__ and cls.__name__ != 'DebugResource':
             return
         for name in set(dir(cls)):
             attr = getattr(cls, name, None)

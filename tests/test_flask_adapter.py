@@ -2,7 +2,7 @@
 import datetime
 import unittest
 
-from webtest import TestApp
+from webtest import TestApp, AppError
 
 from tests.example_app.api.resources import DateTimeResource
 
@@ -114,3 +114,15 @@ class FlaskAdapterTests(unittest.TestCase):
         end = returned_range['end']
         expected_fields = DateTimeResource._all_fields()
         self.assertExpectedFields(end, expected_fields)
+
+    def test_patch(self):
+
+        # Without the correct Content-Type, we expect a 415 error.
+        self.assertRaises(AppError, self.app.patch_json,
+            '/api/patch/resource', {'this': 'that'})
+
+        resp = self.app.patch_json('/api/patch/resource', {'this': 'that'},
+            headers={'Content-Type': 'application/merge-patch+json'})
+        self.assertEqual(resp.status_code, 200)
+        print resp.json
+        assert False, "OK"
