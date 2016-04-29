@@ -124,5 +124,6 @@ class FlaskAdapterTests(unittest.TestCase):
         resp = self.app.patch_json('/api/patch/resource', {'this': 'that'},
             headers={'Content-Type': 'application/merge-patch+json'})
         self.assertEqual(resp.status_code, 200)
-        print resp.json
-        assert False, "OK"
+
+        # print resp.json
+        # assert False, "OK"

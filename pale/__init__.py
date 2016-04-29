@@ -12,7 +12,7 @@ from . import arguments
 from . import config
 from . import context
 from . import doc
-from .endpoint import Endpoint
+from .endpoint import Endpoint, PatchEndpoint
 from .resource import NoContentResource, Resource, ResourceList
 
 try:
@@ -59,7 +59,8 @@ def extract_endpoints(api_module):
     instances = []
 
     for cls in classes:
-        if cls != Endpoint and Endpoint in inspect.getmro(cls):
+        if cls not in (Endpoint, PatchEndpoint) and \
+                Endpoint in inspect.getmro(cls):
             instances.append(cls())
     return instances
 

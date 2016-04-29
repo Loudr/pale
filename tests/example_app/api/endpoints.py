@@ -1,6 +1,6 @@
 import datetime
 
-from pale import Endpoint
+from pale import Endpoint, PatchEndpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
 from pale.resource import DebugResource
 from pale.errors.api_error import APIError
@@ -120,24 +120,15 @@ class TimeRangeEndpoint(Endpoint):
         return {'range': time_range}
 
 
-
-
-MERGE_TYPE = 'application/merge-patch+json'
-class ResourcePatchEndpoint(Endpoint):
+class ResourcePatchEndpoint(PatchEndpoint):
     """
     """
 
-    _http_method = "PATCH"
     _uri = "/patch/resource"
     _route_name = "resource_patch"
 
     _returns = DebugResource("HM")
 
-    def _handle(self, context):
-        if not context.headers.get('Content-Type').lower() == MERGE_TYPE:
-            raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
-                MERGE_TYPE)
-
-        print context.body
-        return {'yo': 'yo'}
+    def _handle_patch(self, context, data):
+        return data
 
