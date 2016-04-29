@@ -402,12 +402,13 @@ class ResourcePatch(object):
                 # Cast value and set
                 setattr(dt, k, self.cast_value(field, v))
 
+
 class PatchEndpoint(Endpoint):
     """Provides a base endpoint for implementing JSON Merge Patch requests.
     See RFC 7386 @ https://tools.ietf.org/html/rfc7386
     """
 
-    MERGE_CONTEXT_TYPE = 'application/merge-patch+json'
+    MERGE_CONTENT_TYPE = 'application/merge-patch+json'
     _http_method = "PATCH"
 
     def _handle_patch(self, context, patch):
@@ -422,9 +423,9 @@ class PatchEndpoint(Endpoint):
                 self.__class__.__name__)
 
         if (context.headers.get('Content-Type').lower() !=
-                self.MERGE_CONTEXT_TYPE):
+                self.MERGE_CONTENT_TYPE):
             raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
-                self.MERGE_CONTEXT_TYPE)
+                self.MERGE_CONTENT_TYPE)
 
         try:
             patch = ResourcePatch(patch=json.loads(context.body),
