@@ -221,10 +221,16 @@ class Endpoint(object):
             logging.exception(e)
             raise e
 
-        if hasattr(self, '_after_response_handlers') and \
-                isinstance(self._after_response_handlers, (list, tuple)):
-            for handler in self._after_response_handlers:
-                handler(self._context, response)
+        try:
+            if hasattr(self, '_after_response_handlers') and \
+                    isinstance(self._after_response_handlers, (list, tuple)):
+                for handler in self._after_response_handlers:
+                    handler(self._context, response)
+        except Exception as e:
+            logging.exception(
+                "Failed to process _after_response_handlers for Endpoint %s"
+                % self.__class__.__name__)
+            raise e
 
         allow_cors = getattr(self, "_allow_cors", None)
         if allow_cors is True:
