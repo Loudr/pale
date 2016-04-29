@@ -221,6 +221,12 @@ class Endpoint(object):
             logging.exception(e)
             raise e
 
+        allow_cors = getattr(self, "_allow_cors", None)
+        if allow_cors is True:
+            response.headers['Access-Control-Allow-Origin'] = '*'
+        elif isinstance(allow_cors, basestring):
+            response.headers['Access-Control-Allow-Origin'] = allow_cors
+
         try:
             if hasattr(self, '_after_response_handlers') and \
                     isinstance(self._after_response_handlers, (list, tuple)):
@@ -231,12 +237,6 @@ class Endpoint(object):
                 "Failed to process _after_response_handlers for Endpoint %s"
                 % self.__class__.__name__)
             raise e
-
-        allow_cors = getattr(self, "_allow_cors", None)
-        if allow_cors is True:
-            response.headers['Access-Control-Allow-Origin'] = '*'
-        elif isinstance(allow_cors, basestring):
-            response.headers['Access-Control-Allow-Origin'] = allow_cors
 
         return response
 
