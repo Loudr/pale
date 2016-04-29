@@ -101,7 +101,10 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
         self.headers = request.headers
         self.cookies = request.cookies
         self.request = request
-        self.body = request.body
+        try:
+            self.body = request.body
+        except AttributeError:
+            self.body = None
         self._raw_args = self.build_args_from_request(request)
         self.route_args = request.route_args
         self.route_kwargs = request.route_kwargs
