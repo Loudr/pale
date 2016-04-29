@@ -189,7 +189,7 @@ class Endpoint(object):
             if hasattr(self, '_after_handlers') and \
                     isinstance(self._after_handlers, (list, tuple)):
                 for handler in self._after_handlers:
-                    handle(self._context)
+                    handler(self._context)
 
             self._render()
             # After calling ._render(), the response is ready to go, so we
@@ -344,7 +344,7 @@ class Endpoint(object):
             cache_ctrl = headers.get('Cache-Control')
             if cache_ctrl is not None:
                 self._context.response.headers['Cache-Control'] = cache_ctrl
-                updated_ctrl_from_endpoint = True
+                updated_cache_ctrl_from_endpoint = True
 
         if not updated_cache_ctrl_from_endpoint:
             self._context.response.headers['Cache-Control'] = \
