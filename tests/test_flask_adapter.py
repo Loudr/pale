@@ -32,6 +32,10 @@ class FlaskAdapterTests(unittest.TestCase):
         now = datetime.datetime.now()
         resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
+        # Test _after_response_handlers
+        self.assertIn("After-Response", resp.headers)
+        self.assertEqual(resp.headers["After-Response"], 'OK')
+        # Test CORS
         self.assertIn("Access-Control-Allow-Origin", resp.headers)
         self.assertEqual(resp.headers["Access-Control-Allow-Origin"], '*')
 

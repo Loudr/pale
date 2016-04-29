@@ -163,14 +163,22 @@ class Endpoint(object):
             be sent by your HTTP framework's routing handler.
                          *
                          *
-        ``pre_response_handler``
-            The pre_response_handlers are sepcified by the Endpoint definition,
-            and enable manipulation of the response object before it is
-            returned to the client, but after the response is rendered.
+        ``_after_response_handler``
+            The `_after_response_handlers` are sepcified by the Endpoint
+            definition, and enable manipulation of the response object before it
+            is returned to the client, but after the response is rendered.
 
             Because these are instancemethods, they may share instance data
             from `self` specified in the endpoint's `_handle` method.
 
+        ``_allow_cors``
+            This value is set to enable CORs for a given endpoint.
+
+            When set to a string it supplies an explicit value to
+            'Access-Control-Allow-Origin'.
+
+            Set to True, this will allow access from *all* domains;
+                Access-Control-Allow-Origin = "*"
 
         """
         try:
@@ -192,6 +200,7 @@ class Endpoint(object):
                     handler(self._context)
 
             self._render()
+            response = self._context.response
             # After calling ._render(), the response is ready to go, so we
             # shouldn't need to handle any other exceptions beyond this point.
         except AuthenticationError as e:
@@ -200,24 +209,36 @@ class Endpoint(object):
             else:
                 message = "You don't have permission to do that."
             err = APIError.Forbidden(message)
-            return self._response_class(*err.response)
+            response = self._response_class(*err.response)
         except ArgumentError as e:
             err = APIError.UnprocessableEntity(e.message)
-            return self._response_class(*err.response)
+            response = self._response_class(*err.response)
         except APIError as e:
-            return self._response_class(*e.response)
+            response = self._response_class(*e.response)
         except PaleRaisedResponse as r:
-            return self._response_class(*r.response)
+            response = self._response_class(*r.response)
         except Exception as e:
             logging.exception(e)
             raise e
 
-        if hasattr(self, '_pre_response_handlers') and \
-                isinstance(self._pre_response_handlers, (list, tuple)):
-            for handler in self._pre_response_handlers:
-                handler(self._context, self._context.response)
+        allow_cors = getattr(self, "_allow_cors", None)
+        if allow_cors is True:
+            response.headers['Access-Control-Allow-Origin'] = '*'
+        elif isinstance(allow_cors, basestring):
+            response.headers['Access-Control-Allow-Origin'] = allow_cors
 
-        return self._context.response
+        try:
+            if hasattr(self, '_after_response_handlers') and \
+                    isinstance(self._after_response_handlers, (list, tuple)):
+                for handler in self._after_response_handlers:
+                    handler(self._context, response)
+        except Exception as e:
+            logging.exception(
+                "Failed to process _after_response_handlers for Endpoint %s"
+                % self.__class__.__name__)
+            raise e
+
+        return response
 
 
     def _create_context(self, request):
