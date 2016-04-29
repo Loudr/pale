@@ -169,7 +169,7 @@ class ResourcePatchEndpoint(PatchEndpoint):
     _uri = "/resource"
     _route_name = "resource_patch"
 
-    _resource = DebugResource("app resource patch")
+    _resource = DebugResource("resource patch.")
     _returns = DebugResource("app resource.")
 
     def _handle_patch(self, context, patch):

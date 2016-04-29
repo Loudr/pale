@@ -390,6 +390,18 @@ class ResourcePatch(object):
                 # Cast value and store
                 dt[k] = self.cast_value(field, v)
 
+    def apply_to_model(self, dt):
+        model = self.resource._underlying_model
+        for k,v in self.patch.iteritems():
+            field = self.get_field_from_resource(k)
+            if isinstance(v, dict):
+                # Recursive application.
+                patch = ResourcePatch(v, field)
+                patch.apply_to_model(dt[k])
+            else:
+                # Cast value and set
+                setattr(dt, k, self.cast_value(field, v))
+
 class PatchEndpoint(Endpoint):
     """Provides a base endpoint for implementing JSON Merge Patch requests.
     See RFC 7386 @ https://tools.ietf.org/html/rfc7386
