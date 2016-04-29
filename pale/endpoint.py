@@ -7,7 +7,7 @@ import sys
 import arrow
 from pale import config as pale_config
 from pale.arguments import BaseArgument
-from pale.fields import ResourceField
+from pale.fields import ResourceField, ListField, ResourceListField
 from pale.errors import APIError, ArgumentError, AuthenticationError
 from pale.meta import MetaHasFields
 from pale.resource import NoContentResource, Resource, DebugResource
@@ -378,8 +378,26 @@ class ResourcePatch(object):
         assert isinstance(field, ResourceField)
         return field.resource_type()
 
-    @classmethod
-    def cast_value(cls, field, value):
+    def cast_value(self, field, value):
+        if isinstance(field, ResourceListField):
+            if not isinstance(value, dict):
+                raise APIError.BadRequest(
+                    "Expected nested object in list for %s" % field)
+            try:
+                resource = field.resource_type()
+                new_object = {}
+                for k,v in value.iteritems():
+                    _field = resource._fields[k]
+                    if _field.property_name is not None:
+                        k = _field.property_name
+                    new_object[k] = self.cast_value(_field, v)
+                return resource._underlying_model(**new_object)
+            except Exception:
+                logging.exception(
+                    "Failed to cast value to _underlying_model of resource_type: %s" %
+                    getattr(field, 'resource_type', None))
+                raise
+
         # TODO: Use field to cast field back into a value,
         # if possible.
         return value
@@ -393,7 +411,14 @@ class ResourcePatch(object):
                 patch = ResourcePatch(v, resource)
                 patch.apply_to_dict(dt[k])
             elif isinstance(v, list):
-                raise NotImplementedError()
+                if (not isinstance(field, ResourceListField) and
+                        not isinstance(field, ListField)):
+                    raise APIError.BadRequest(
+                        "List not expected for field '%s'" % k)
+                new_list = []
+                for itm in v:
+                    new_list.append(self.cast_value(field, itm))
+                dt[k] = new_list
             else:
                 # Cast value and store
                 dt[k] = self.cast_value(field, v)
@@ -407,7 +432,15 @@ class ResourcePatch(object):
                 patch = ResourcePatch(v, resource)
                 patch.apply_to_model(getattr(dt, k, None))
             elif isinstance(v, list):
-                raise NotImplementedError()
+                if (not isinstance(field, ResourceListField) and
+                        not isinstance(field, ListField)):
+                    raise APIError.BadRequest(
+                        "List not expected for field '%s'" % k)
+                new_list = []
+                for itm in v:
+                    new_list.append(self.cast_value(field, itm))
+
+                setattr(dt, k, new_list)
             else:
                 # Cast value and set
                 setattr(dt, k, self.cast_value(field, v))
