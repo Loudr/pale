@@ -344,7 +344,7 @@ class Endpoint(object):
             cache_ctrl = headers.get('Cache-Control')
             if cache_ctrl is not None:
                 self._context.response.headers['Cache-Control'] = cache_ctrl
-                updated_ctrl_from_endpoint = True
+                updated_cache_ctrl_from_endpoint = True
 
         if not updated_cache_ctrl_from_endpoint:
             self._context.response.headers['Cache-Control'] = \
