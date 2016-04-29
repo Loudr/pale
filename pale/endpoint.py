@@ -189,7 +189,7 @@ class Endpoint(object):
             if hasattr(self, '_after_handlers') and \
                     isinstance(self._after_handlers, (list, tuple)):
                 for handler in self._after_handlers:
-                    handle(self._context)
+                    handler(self._context)
 
             self._render()
             # After calling ._render(), the response is ready to go, so we
