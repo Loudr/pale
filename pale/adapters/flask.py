@@ -79,7 +79,7 @@ class DefaultFlaskContext(pale.context.DefaultContext):
         self.request = request
         self.body = request.data
         self._raw_args = self.build_args_from_request(request)
-        self.route_args = request.view_args
+        self.route_kwargs = request.view_args
         self.current_user = None
         self.endpoint = endpoint
 

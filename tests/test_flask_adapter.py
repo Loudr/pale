@@ -27,6 +27,16 @@ class FlaskAdapterTests(unittest.TestCase):
         self.assertEqual(len(d.keys()), 0)
         return
 
+    def test_successful_get_with_route_args(self):
+        now = datetime.datetime.utcnow()
+        resp = self.app.get('/api/arg_test/arg-a/arg-b')
+        self.assertEqual(resp.status_code, 200)
+
+        self.assertEqual(resp.json, {
+            "arg_a": "arg-a",
+            "arg_b": "arg-b",
+            })
+
 
     def test_successful_get_without_params(self):
         now = datetime.datetime.utcnow()
