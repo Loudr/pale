@@ -147,6 +147,23 @@ class GetResourceEndpoint(Endpoint):
     def _handle(self, context):
         return dict(RESOURCE)
 
+
+class RouteArgEndpoint(Endpoint):
+    """Returns the arguments as provided from URI.
+    """
+
+    _uri = "/arg_test/<arg_a>/<arg_b>"
+    _http_method = 'GET'
+    _route_name = "arg_test"
+
+    _returns = DebugResource("app resource.")
+
+    def _handle(self, context):
+        arg_a = context.route_kwargs.get('arg_a', 'no')
+        arg_b = context.route_kwargs.get('arg_b', 'no')
+        return {"arg_a": arg_a, "arg_b": arg_b}
+
+
 class ResetResourceEndpoint(Endpoint):
     """Returns the 'resource' as it exists in memory.
     """
