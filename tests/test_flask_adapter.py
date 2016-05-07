@@ -29,7 +29,7 @@ class FlaskAdapterTests(unittest.TestCase):
 
 
     def test_successful_get_without_params(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         resp = self.app.get('/api/time/current')
         self.assertEqual(resp.status_code, 200)
         # Test _after_response_handlers
