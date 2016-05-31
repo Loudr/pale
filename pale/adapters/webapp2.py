@@ -3,6 +3,7 @@ import logging
 import webapp2
 
 import pale
+import json
 
 RESPONSE_CLASS = webapp2.Response
 
@@ -81,7 +82,11 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
             req_args[key] = request.get_all(key)
 
         if request.content_type == 'application/json':
-            json_args = request.json_body
+            try:
+                json_args = request.json_body
+            except AttributeError:
+                json_args = json.loads(request.body)
+
             for k,v in json_args.iteritems():
                 if k in req_args:
                     logging.warning("Found duplicate argument %s. "
