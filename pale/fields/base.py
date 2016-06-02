@@ -71,7 +71,10 @@ class BaseField(object):
             attr_name = name
             if self.property_name is not None:
                 attr_name = self.property_name
-            val = getattr(obj, attr_name, None)
+            if isinstance(obj, dict):
+                val = obj.get(attr_name, None)
+            else:
+                val = getattr(obj, attr_name, None)
         return val
 
 
