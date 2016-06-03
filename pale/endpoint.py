@@ -414,6 +414,9 @@ class ResourcePatch(object):
                     return value.copy()
                 new_object = {}
                 for k,v in value.iteritems():
+                    if not k in resource._fields and self.ignore_missing_fields:
+                        new_object[k] = v
+                        continue
                     _field = resource._fields[k]
                     if _field.property_name is not None:
                         k = _field.property_name
