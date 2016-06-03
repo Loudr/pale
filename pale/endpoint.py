@@ -411,7 +411,7 @@ class ResourcePatch(object):
             try:
                 resource = field.resource_type()
                 if isinstance(resource, DebugResource):
-                    return new_object
+                    return value.copy()
                 new_object = {}
                 for k,v in value.iteritems():
                     _field = resource._fields[k]
