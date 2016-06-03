@@ -422,7 +422,7 @@ class ResourcePatch(object):
                         k = _field.property_name
                     new_object[k] = self.cast_value(_field, v)
 
-                if not getattr(resource, _underlying_model, None):
+                if not getattr(resource, "_underlying_model", None):
                     return new_object
 
                 return resource._underlying_model(**new_object)
