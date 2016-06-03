@@ -501,3 +501,37 @@ class PatchEndpoint(Endpoint):
 
         return self._handle_patch(context, patch)
 
+
+class PutResourceEndpoint(Endpoint):
+    """Provides a base endpoint for implementing JSON PUT resource.
+    See RFC 7386 @ https://tools.ietf.org/html/rfc7386
+    """
+
+    MERGE_CONTENT_TYPE = 'application/json'
+    _http_method = "PUT"
+
+    def _handle_put(self, context, patch):
+        raise NotImplementedError("%s should override _handle_patch" %
+            self.__class__.__name__)
+
+    def _handle(self, context):
+        resource = getattr(self, "_resource", None)
+        if not isinstance(resource, Resource):
+            raise NotImplementedError(
+                "%s needs to define _resource: Resource which will be patched" %
+                self.__class__.__name__)
+
+        if (context.headers.get('Content-Type').lower() !=
+                self.MERGE_CONTENT_TYPE):
+            raise APIError.UnsupportedMedia("PATCH expects content-type %r" %
+                self.MERGE_CONTENT_TYPE)
+
+        try:
+            patch = ResourcePatch(patch=json.loads(context.body),
+                                  resource=resource)
+        except Exception, exc:
+            raise APIError.UnprocessableEntity(
+                "Could not decode JSON from request payload: %s" %
+                exc)
+
+        return self._handle_put(context, patch)

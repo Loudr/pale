@@ -137,10 +137,16 @@ class FlaskAdapterTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json, {'key': 'value'})
 
+        # Test creating a new resource
+        resp = self.app.put_json('/api/resource', {'key': 'boop'},
+            headers={'Content-Type': 'application/json'})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json, {'key': 'boop'})
+
         # Test retrieving the resource.
         resp = self.app.get('/api/resource')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json, {'key': 'value'})
+        self.assertEqual(resp.json, {'key': 'boop'})
 
         # Test patching the resource.
         # Without the correct Content-Type, we expect a 415 error.

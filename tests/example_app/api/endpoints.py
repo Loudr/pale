@@ -2,7 +2,7 @@ import datetime
 
 from multiprocessing import Manager
 
-from pale import Endpoint, PatchEndpoint
+from pale import Endpoint, PatchEndpoint, PutResourceEndpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
 from pale.resource import DebugResource
 from pale.errors.api_error import APIError
@@ -192,6 +192,24 @@ class ResourcePatchEndpoint(PatchEndpoint):
     def _handle_patch(self, context, patch):
         data = dict(RESOURCE)
         patch.apply_to_dict(data)
+        RESOURCE.update(data)
+        return dict(RESOURCE)
+
+
+class ResourceCreateEndpoint(PutResourceEndpoint):
+    """Patches a resource which is local to each instance of the app.
+    """
+
+    _uri = "/resource"
+    _route_name = "resource_put"
+
+    _resource = DebugResource("resource patch.")
+    _returns = DebugResource("app resource.")
+
+    def _handle_put(self, context, patch):
+        data = {}
+        patch.apply_to_dict(data)
+        RESOURCE.clear()
         RESOURCE.update(data)
         return dict(RESOURCE)
 

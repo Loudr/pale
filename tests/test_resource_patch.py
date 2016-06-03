@@ -109,4 +109,3 @@ class ResourcePatchTests(unittest.TestCase):
         self.assertEqual(dt['counters'][0], {'name': 'products', 'value': 36})
         self.assertEqual(dt['tokens'][0], 'gold-coin')
 
-
