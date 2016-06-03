@@ -380,10 +380,10 @@ class ResourcePatch(object):
     """Represents a resource patch which is to be applied
     to a given dictionary or object."""
 
-    def __init__(self, patch, resource):
+    def __init__(self, patch, resource, ignore_missing_fields=False):
         self.patch = patch
         self.resource = resource
-        self.ignore_missing_fields = False
+        self.ignore_missing_fields = ignore_missing_fields
 
     def get_field_from_resource(self, field):
         if isinstance(self.resource, DebugResource):
@@ -438,7 +438,8 @@ class ResourcePatch(object):
             elif isinstance(v, dict):
                 # Recursive application.
                 resource = self.get_resource_from_field(field)
-                patch = ResourcePatch(v, resource)
+                patch = ResourcePatch(v, resource,
+                    ignore_missing_fields=self.ignore_missing_fields)
                 patch.apply_to_dict(dt[k])
             elif isinstance(v, list):
                 if (not isinstance(field, ResourceListField) and
@@ -461,7 +462,8 @@ class ResourcePatch(object):
             elif isinstance(v, dict):
                 # Recursive application.
                 resource = self.get_resource_from_field(field)
-                patch = ResourcePatch(v, resource)
+                patch = ResourcePatch(v, resource,
+                    ignore_missing_fields=self.ignore_missing_fields)
                 patch.apply_to_model(getattr(dt, k, None))
             elif isinstance(v, list):
                 if (not isinstance(field, ResourceListField) and
