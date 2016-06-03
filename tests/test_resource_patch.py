@@ -88,7 +88,8 @@ class ResourcePatchTests(unittest.TestCase):
             ],
             'tokens': [
                 'gold-coin'
-            ]
+            ],
+            'bad_field': True,
         }
 
         user_resouce = UserResource()
@@ -100,6 +101,7 @@ class ResourcePatchTests(unittest.TestCase):
         self.assertEqual(dt['tokens'], [])
 
         patch = ResourcePatch(patch_data, user_resouce)
+        patch.ignore_missing_fields = True
 
         patch.apply_to_model(user)
 

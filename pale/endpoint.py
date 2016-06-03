@@ -383,6 +383,7 @@ class ResourcePatch(object):
     def __init__(self, patch, resource):
         self.patch = patch
         self.resource = resource
+        self.ignore_missing_fields = False
 
     def get_field_from_resource(self, field):
         if isinstance(self.resource, DebugResource):
@@ -392,8 +393,11 @@ class ResourcePatch(object):
         try:
             return self.resource._fields[field]
         except KeyError:
-            raise APIError.BadRequest(
-                "Field '%s' is not expected." % field)
+            if not self.ignore_missing_fields:
+                raise APIError.BadRequest(
+                    "Field '%s' is not expected." % field)
+
+            return None
 
     def get_resource_from_field(self, field):
         assert isinstance(field, ResourceField)
@@ -406,6 +410,8 @@ class ResourcePatch(object):
                     "Expected nested object in list for %s" % field)
             try:
                 resource = field.resource_type()
+                if isinstance(resource, DebugResource):
+                    return new_object
                 new_object = {}
                 for k,v in value.iteritems():
                     _field = resource._fields[k]
@@ -426,7 +432,10 @@ class ResourcePatch(object):
     def apply_to_dict(self, dt):
         for k,v in self.patch.iteritems():
             field = self.get_field_from_resource(k)
-            if isinstance(v, dict):
+            if field is None:
+                dt[k] = v
+                continue
+            elif isinstance(v, dict):
                 # Recursive application.
                 resource = self.get_resource_from_field(field)
                 patch = ResourcePatch(v, resource)
@@ -447,7 +456,9 @@ class ResourcePatch(object):
     def apply_to_model(self, dt):
         for k,v in self.patch.iteritems():
             field = self.get_field_from_resource(k)
-            if isinstance(v, dict):
+            if field is None:
+                setattr(dt, k, v)
+            elif isinstance(v, dict):
                 # Recursive application.
                 resource = self.get_resource_from_field(field)
                 patch = ResourcePatch(v, resource)
