@@ -220,7 +220,7 @@ class Endpoint(object):
             response = self._response_class(*r.response)
         except Exception as e:
             logging.exception(e)
-            raise e
+            raise
 
         allow_cors = getattr(self, "_allow_cors", None)
         if allow_cors is True:
@@ -237,7 +237,7 @@ class Endpoint(object):
             logging.exception(
                 "Failed to process _after_response_handlers for Endpoint %s"
                 % self.__class__.__name__)
-            raise e
+            raise
 
         return response
 
