@@ -239,6 +239,11 @@ class Endpoint(object):
                 % self.__class__.__name__)
             raise
 
+        # ensure content type is json
+        if "Content-Type" not in response.headers or \
+                response.headers["Content-Type"] != "application/json":
+            response.headers["Content-Type"] = "application/json"
+
         return response
 
 
