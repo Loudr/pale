@@ -211,13 +211,17 @@ class Endpoint(object):
                 message = "You don't have permission to do that."
             err = APIError.Forbidden(message)
             response = self._response_class(*err.response)
+            response.headers["Content-Type"] = 'application/json'
         except ArgumentError as e:
             err = APIError.UnprocessableEntity(e.message)
             response = self._response_class(*err.response)
+            response.headers["Content-Type"] = 'application/json'
         except APIError as e:
             response = self._response_class(*e.response)
+            response.headers["Content-Type"] = 'application/json'
         except PaleRaisedResponse as r:
             response = self._response_class(*r.response)
+            response.headers["Content-Type"] = 'application/json'
         except Exception as e:
             logging.exception(e)
             raise
@@ -238,11 +242,6 @@ class Endpoint(object):
                 "Failed to process _after_response_handlers for Endpoint %s"
                 % self.__class__.__name__)
             raise
-
-        # ensure content type is json
-        if "Content-Type" not in response.headers or \
-                response.headers["Content-Type"] != "application/json":
-            response.headers["Content-Type"] = "application/json"
 
         return response
 
@@ -378,7 +377,10 @@ class Endpoint(object):
                     self._default_cache
 
         # Add default json response type.
-        self._context.response.headers["Content-Type"] = "application/json"
+        if len(json_content):
+            self._context.response.headers["Content-Type"] = 'application/json'
+        else:
+            del self._context.response.headers["Content-Type"]
 
 
 class ResourcePatch(object):

@@ -135,17 +135,20 @@ class FlaskAdapterTests(unittest.TestCase):
         # (multiple test runs from the same process will fail otherwise)
         resp = self.app.post('/api/resource/reset')
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'value'})
 
         # Test creating a new resource
         resp = self.app.put_json('/api/resource', {'key': 'boop'},
             headers={'Content-Type': 'application/json'})
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'boop'})
 
         # Test retrieving the resource.
         resp = self.app.get('/api/resource')
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'boop'})
 
         # Test patching the resource.
@@ -156,9 +159,16 @@ class FlaskAdapterTests(unittest.TestCase):
         resp = self.app.patch_json('/api/resource', {'key': 'value2'},
             headers={'Content-Type': 'application/merge-patch+json'})
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'value2'})
 
         # Test get to ensure the resource persists.
         resp = self.app.get('/api/resource')
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'value2'})
+
+        # A NoContentResource shouldn't have a Content-Type header (no content!)
+        resp = self.app.post('/api/blank')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, None)

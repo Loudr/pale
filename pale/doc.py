@@ -141,6 +141,8 @@ def document_resource(resource):
         'name': resource._value_type,
         'description': py_doc_trim(resource.__doc__),
         'fields': field_doc,
-        'default_fields': list(resource._default_fields)
+        'default_fields': None,
     }
+    if resource._default_fields:
+        res_doc['default_fields'] = list(resource._default_fields)
     return res_doc
