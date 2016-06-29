@@ -4,7 +4,7 @@ from multiprocessing import Manager
 
 from pale import Endpoint, PatchEndpoint, PutResourceEndpoint
 from pale.arguments import BooleanArgument, IntegerArgument, StringArgument
-from pale.resource import DebugResource
+from pale.resource import DebugResource, NoContentResource
 from pale.errors.api_error import APIError
 from tests.example_app.models import DateTimeModel, DateTimeRangeModel
 from tests.example_app.api.resources import (DateTimeResource,
@@ -213,3 +213,16 @@ class ResourceCreateEndpoint(PutResourceEndpoint):
         RESOURCE.update(data)
         return dict(RESOURCE)
 
+
+class BlankEndpoint(Endpoint):
+    """ This carries out some action, then returns nothing on success.
+    """
+    _http_method = "POST"
+    _uri = "/blank"
+    _route_name = "resource_blank"
+    _allow_cors = True
+
+    _returns = NoContentResource()
+
+    def _handle(self, context):
+        return {}

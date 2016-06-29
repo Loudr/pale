@@ -167,3 +167,8 @@ class FlaskAdapterTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(resp.json, {'key': 'value2'})
+
+        # A NoContentResource shouldn't have a Content-Type header (no content!)
+        resp = self.app.post('/api/blank')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, None)
