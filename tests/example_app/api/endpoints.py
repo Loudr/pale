@@ -225,4 +225,4 @@ class BlankEndpoint(Endpoint):
     _returns = NoContentResource()
 
     def _handle(self, context):
-        return {}
+        return None
