@@ -380,8 +380,9 @@ class Endpoint(object):
         if len(json_content):
             self._context.response.headers["Content-Type"] = 'application/json'
         else:
-            del self._context.response.headers["Content-Type"]
-
+            del self._context.response.content_type
+            if self._context.response.status_code == 200: # 200 OK
+                self._context.response.status = '204 No Content'
 
 class ResourcePatch(object):
     """Represents a resource patch which is to be applied
