@@ -381,6 +381,7 @@ class Endpoint(object):
             self._context.response.headers["Content-Type"] = 'application/json'
         else:
             del self._context.response.content_type
+            del self._context.response.content_length
             if self._context.response.status_code == 200: # 200 OK
                 self._context.response.status = '204 No Content'
 
