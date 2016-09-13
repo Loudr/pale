@@ -170,5 +170,5 @@ class FlaskAdapterTests(unittest.TestCase):
 
         # A NoContentResource shouldn't have a Content-Type header (no content!)
         resp = self.app.post('/api/blank')
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 204)
         self.assertEqual(resp.content_type, None)
