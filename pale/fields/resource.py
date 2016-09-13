@@ -1,6 +1,7 @@
 from pale.fields.base import BaseField, ListField
 from pale.resource import Resource
 
+import logging
 
 class ResourceField(BaseField):
     """A field that contains a nested resource"""
@@ -31,7 +32,10 @@ class ResourceField(BaseField):
     def doc_dict(self):
         doc = super(ResourceField, self).doc_dict()
         doc['resource_type'] = self.resource_type._value_type
-        doc['default_fields'] = list(self.subfields)
+        if self.subfields is None:
+            logging.warn("paledoc: `subfields` on ResourceField %s is None",
+                self.__class__.__name__)
+        doc['default_fields'] = list(self.subfields or [])
         return doc
 
 
