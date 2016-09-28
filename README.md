@@ -18,3 +18,18 @@ Pale is currently in an early pre-release state, but we've decided to
 open it up now anyways.  As we progress, the interfaces for using Pale
 will stabilize, and we'll get our unit tests up to snuff so that you'll
 feel confident using Pale in your own projects.
+
+### Running Tests
+
+Per the included `circle.yml`, you can use CircleCI to build and test your changes.
+
+You can also run all the tests locally with:
+
+```Shell
+nosetests tests/
+```
+
+Or run any individual test with:
+```Shell
+nosetests <path-to-test>
+```
