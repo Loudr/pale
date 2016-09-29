@@ -2,7 +2,8 @@ import json
 import unittest
 import inspect
 
-from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_docs
+from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_docs, \
+  document_endpoint, generate_raml_tree
 
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
@@ -148,10 +149,9 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(resource['description'],
                 'A time range that returns some nested resources')
 
+
     def test_generate_basic_type_docs(self):
         fields = self.example_fields
-
-        basic_fields = []
 
         sample_existing_types = {
             "oauth_scope": {
@@ -160,16 +160,46 @@ class PaleDocTests(unittest.TestCase):
             }
         }
 
+        # set up basic fields the same way as generate_raml_docs
+        basic_fields = []
+
         for field_module in inspect.getmembers(fields, inspect.ismodule):
             for field_class in inspect.getmembers(field_module[1], inspect.isclass):
                 basic_fields.append(field_class[1])
 
-        pale_basic_types = generate_basic_type_docs(basic_fields, sample_existing_types)[1]
+        test_types = generate_basic_type_docs(basic_fields, sample_existing_types)[1]
 
         self.assertTrue(len(basic_fields) > 0)
-        self.assertTrue(pale_basic_types.get('base') != None)
-        self.assertEquals(pale_basic_types["base"]["type"], "object")
-        self.assertEquals(pale_basic_types["list"]["type"], "array",
+        self.assertTrue(test_types.get('base') != None)
+        self.assertEquals(test_types["base"]["type"], "object")
+        self.assertEquals(test_types["list"]["type"], "array",
                 "Sets type for children of RAML built-in types to their parent type")
-        self.assertEquals(pale_basic_types.get("oauth_scope"), None,
+        self.assertEquals(test_types.get("oauth_scope"), None,
                 "Does not overwrite an existing type")
+
+
+    def test_generate_raml_tree(self):
+        # set up doc tree the same way as generate_raml_docs
+        from pale import extract_endpoints, extract_resources, is_pale_module
+        raml_resources = extract_endpoints(self.example_app)
+        raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
+        test_tree = generate_raml_tree(raml_resource_doc_flat, version="v1")
+        self.assertTrue(test_tree.get("path") != None)
+        self.assertTrue(test_tree["path"]["time"] != None)
+        self.assertTrue(test_tree["path"]["time"]["path"]["current"] != None)
+        self.assertTrue(test_tree["path"]["arg_test/{arg_a}"] != None,
+                "Includes parent folder in the path for URIs")
+        self.assertTrue(test_tree["path"]["arg_test/{arg_a}"]["path"]["{arg_b}"] != None,
+                "Correctly parses nested URIS")
+
+
+
+
+
+
+
+
+
+
+
+

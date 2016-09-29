@@ -149,9 +149,6 @@ def generate_type_docs(types):
 
             type_safe = types[type_name]["type"].replace(" ", "_")
 
-            # if type_safe == "base":
-            #     type_safe = "object"
-
             # if we are dealing with a list, set type to array and specify type of items
             if types[type_name].get("items") != None:
                 items_safe = types[type_name]["items"].replace(" ", "_")
@@ -499,8 +496,8 @@ def generate_raml_tree(flat_resources, version):
     re_dir_nested = "(\w+/[<>\w]+:.*>)"
     # pattern #2: matches "path/<id>""
     re_dir_unique = "(\w+/<[\w\(\)\?\!\.\+]+>)"
-    # pattern #3: matches "path" not appearing before "<"
-    re_dir_either = "(\w+)(?!<)"
+    # pattern #3: matches "path" or "<id>" not appearing before "<"
+    re_dir_either = "([<>\w\(\)\?\!\.\+]+)(?!<)"
     # combine the patterns
     uri_re_pattern = re_dir_nested + "|" + re_dir_unique + "|" + re_dir_either
 
