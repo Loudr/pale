@@ -96,7 +96,7 @@ def generate_raml_docs(module, fields, shared_types, title="My API", version="v1
         for field_class in inspect.getmembers(field_module[1], inspect.isclass):
             basic_fields.append(field_class[1])
 
-    pale_basic_types = generate_basic_types(basic_fields, {})
+    pale_basic_types = generate_basic_type_docs(basic_fields, {})
 
     output.write("\n# Pale Basic Types:\n\n")
     output.write(pale_basic_types[0])
@@ -110,7 +110,7 @@ def generate_raml_docs(module, fields, shared_types, title="My API", version="v1
 
             shared_fields.append(field_class[1])
 
-    pale_shared_types = generate_basic_types(shared_fields, pale_basic_types[1])
+    pale_shared_types = generate_basic_type_docs(shared_fields, pale_basic_types[1])
     output.write("\n# Pale Shared Types:\n\n")
     output.write(pale_shared_types[0])
 
@@ -175,9 +175,13 @@ def generate_type_docs(types):
     return type_docs
 
 
-def generate_basic_types(fields, existing_types):
+def generate_basic_type_docs(fields, existing_types):
     """Map resource types to their RAML equivalents.
-    See:
+    Expects fields to be a list of modules - each module would be something like pale.fields.
+    Expects existing_types to be a list of dict of existing types, which will take precedence
+    and prevent a new type with the same name from being added.
+
+    For more on RAML built-in-types, see:
     https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#built-in-types
     """
 

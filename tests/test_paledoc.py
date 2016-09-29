@@ -1,7 +1,8 @@
 import json
 import unittest
+import inspect
 
-from pale.doc import generate_doc_dict, generate_json_docs
+from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_docs
 
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
@@ -10,7 +11,9 @@ class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
         from tests.example_app import api as example_pale_app
+        from pale import fields
         self.example_app = example_pale_app
+        self.example_fields = fields
         self.doc_dict = generate_doc_dict(self.example_app)
 
 
@@ -144,3 +147,29 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(resource['name'], 'DateTime Range Resource')
         self.assertEqual(resource['description'],
                 'A time range that returns some nested resources')
+
+    def test_generate_basic_type_docs(self):
+        fields = self.example_fields
+
+        basic_fields = []
+
+        sample_existing_types = {
+            "oauth_scope": {
+                "description": "An existing oauth scope type",
+                "type": "base"
+            }
+        }
+
+        for field_module in inspect.getmembers(fields, inspect.ismodule):
+            for field_class in inspect.getmembers(field_module[1], inspect.isclass):
+                basic_fields.append(field_class[1])
+
+        pale_basic_types = generate_basic_type_docs(basic_fields, sample_existing_types)[1]
+
+        self.assertTrue(len(basic_fields) > 0)
+        self.assertTrue(pale_basic_types.get('base') != None)
+        self.assertEquals(pale_basic_types["base"]["type"], "object")
+        self.assertEquals(pale_basic_types["list"]["type"], "array",
+                "Sets type for children of RAML built-in types to their parent type")
+        self.assertEquals(pale_basic_types.get("oauth_scope"), None,
+                "Does not overwrite an existing type")
