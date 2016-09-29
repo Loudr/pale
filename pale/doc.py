@@ -588,7 +588,8 @@ def generate_raml_resources(module, version):
 
                 # add the description
                 if this_endpoint.get("description") != None:
-                    output.write(indent + "description: " + this_endpoint["description"] + "\n")
+                    modified_description = description_compiler.sub(' ', this_endpoint["description"], 0)
+                    output.write(indent + "description: " + modified_description + "\n")
 
                 # add queryParameters per RAML spec
                 if this_endpoint.get("arguments") != None and len(this_endpoint["arguments"]) > 0:
@@ -624,13 +625,13 @@ def generate_raml_resources(module, version):
                                 elif arg_detail == "required":
                                     output.write(indent + "required" + ": " + str(this_arg_detail).lower() + "\n")
                                 elif arg_detail == "min_length":
-                                    output.write(indent + "minLength: " + str(this_arg_detail + "\n"))
+                                    output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
                                 elif arg_detail == "max_length":
-                                    output.write(indent + "maxLength: " + str(this_arg_detail + "\n"))
+                                    output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
                                 elif arg_detail == "min_length":
-                                    output.write(indent + "minLength: " + str(this_arg_detail + "\n"))
+                                    output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
                                 elif arg_detail == "max_length":
-                                    output.write(indent + "maxLength: " + str(this_arg_detail + "\n"))
+                                    output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
 
                         indent = indent[:-2]    # reset indent after arg_detail
 

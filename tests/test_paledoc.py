@@ -180,7 +180,7 @@ class PaleDocTests(unittest.TestCase):
         from pale import extract_endpoints, extract_resources, is_pale_module
         raml_resources = extract_endpoints(self.example_app)
         raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
-        test_tree = generate_raml_tree(raml_resource_doc_flat, version="v1")
+        test_tree = generate_raml_tree(raml_resource_doc_flat, version="")
         # check if the tree is parsing the URIs correctly
         self.assertTrue(test_tree.get("path") != None)
         self.assertTrue(test_tree["path"]["time"] != None)
@@ -204,8 +204,13 @@ class PaleDocTests(unittest.TestCase):
         self.assertTrue("affords\n" not in test_types,
                 "Does not contain newlines in descriptions")
 
-
-
+    def test_generate_raml_resources(self):
+        test_resources = generate_raml_resources(self.example_app, "")
+        test_string = "responses:\n      200:\n        body:\n          description: app resource."
+        self.assertTrue(test_string in test_resources,
+                "Contains some of the output we expect")
+        self.assertTrue("start time.\n" not in test_resources,
+                "Does not contain newlines in descriptions")
 
 
 
