@@ -204,6 +204,7 @@ class PaleDocTests(unittest.TestCase):
         self.assertTrue("affords\n" not in test_types,
                 "Does not contain newlines in descriptions")
 
+
     def test_generate_raml_resources(self):
         test_resources = generate_raml_resources(self.example_app, "")
         test_string = "responses:\n      200:\n        body:\n          description: app resource."
@@ -211,7 +212,7 @@ class PaleDocTests(unittest.TestCase):
                 "Contains some of the output we expect")
         self.assertTrue("start time.\n" not in test_resources,
                 "Does not contain newlines in descriptions")
-
-
-
-
+        self.assertTrue("<" not in test_resources,
+                """Does not contain the machine code version of string formatting, like
+                '<pale.fields.string.StringField object at 0x1132bd2d0>'
+                for example""")

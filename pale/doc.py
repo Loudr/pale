@@ -18,6 +18,10 @@ description_compiler = re.compile(r"\n\s*")
 # this will be useful in replacing colons in descriptions
 colon_compiler = re.compile(r":")
 
+# this will be useful in removing things like:
+#   <pale.fields.string.StringField object at 0x106edbed0>
+# from descriptions
+string_format_compiler = re.compile(r"(<.+>)")
 
 def run_pale_doc():
     parser = argparse.ArgumentParser()
@@ -263,7 +267,7 @@ def generate_basic_type_docs(fields, existing_types):
                 # strip newlines and leading whitespaces from doc string, then add as description
                 if hasattr(field, "__doc__"):
                     description = field.__doc__
-                    modified_description = description_compiler.sub(' ',description, 0)
+                    modified_description = description_compiler.sub(' ', description, 0)
                     modified_description = colon_compiler.sub(';', modified_description, 0)
                     basic_types[type_name]["description"] = modified_description
 
@@ -628,10 +632,10 @@ def generate_raml_resources(module, version):
                                     output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
                                 elif arg_detail == "max_length":
                                     output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "min_length":
-                                    output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "max_length":
-                                    output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
+                                elif arg_detail == "min_value":
+                                    output.write(indent + "minimum: " + str(this_arg_detail) + "\n")
+                                elif arg_detail == "max_value":
+                                    output.write(indent + "maximum: " + str(this_arg_detail) + "\n")
 
                         indent = indent[:-2]    # reset indent after arg_detail
 
@@ -660,7 +664,8 @@ def generate_raml_resources(module, version):
                             if res_detail == "resource_type":
                                 output.write(indent + "type: " + this_endpoint["returns"][res_detail].replace(" ", "_") + "\n")
                             elif res_detail == "description":
-                                output.write(indent + "description: " + this_endpoint["returns"][res_detail] + "\n")
+                                modified_description = string_format_compiler.sub("", this_endpoint["returns"][res_detail], 0).replace("  ", " ")
+                                output.write(indent + "description: " + modified_description + "\n")
 
                     indent = indent [:-6]   # resent indent after responses
 
