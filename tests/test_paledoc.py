@@ -3,7 +3,8 @@ import unittest
 import inspect
 
 from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_docs, \
-  document_endpoint, generate_raml_tree
+  document_endpoint, generate_raml_tree, generate_raml_resource_types, \
+  generate_raml_resources
 
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
@@ -152,21 +153,17 @@ class PaleDocTests(unittest.TestCase):
 
     def test_generate_basic_type_docs(self):
         fields = self.example_fields
-
         sample_existing_types = {
             "oauth_scope": {
                 "description": "An existing oauth scope type",
                 "type": "base"
             }
         }
-
         # set up basic fields the same way as generate_raml_docs
         basic_fields = []
-
         for field_module in inspect.getmembers(fields, inspect.ismodule):
             for field_class in inspect.getmembers(field_module[1], inspect.isclass):
                 basic_fields.append(field_class[1])
-
         test_types = generate_basic_type_docs(basic_fields, sample_existing_types)[1]
 
         self.assertTrue(len(basic_fields) > 0)
@@ -179,11 +176,12 @@ class PaleDocTests(unittest.TestCase):
 
 
     def test_generate_raml_tree(self):
-        # set up doc tree the same way as generate_raml_docs
+        # set up test_tree the same way as generate_raml_docs
         from pale import extract_endpoints, extract_resources, is_pale_module
         raml_resources = extract_endpoints(self.example_app)
         raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
         test_tree = generate_raml_tree(raml_resource_doc_flat, version="v1")
+        # check if the tree is parsing the URIs correctly
         self.assertTrue(test_tree.get("path") != None)
         self.assertTrue(test_tree["path"]["time"] != None)
         self.assertTrue(test_tree["path"]["time"]["path"]["current"] != None)
@@ -191,11 +189,20 @@ class PaleDocTests(unittest.TestCase):
                 "Includes parent folder in the path for URIs")
         self.assertTrue(test_tree["path"]["arg_test/{arg_a}"]["path"]["{arg_b}"] != None,
                 "Correctly parses nested URIS")
+        test_endpoint = test_tree["path"]["time"]["path"]["parse"]["endpoint"]
+        # check if the endpoint contains what we expect
+        self.assertEquals(test_endpoint["http_method"], "POST")
+        self.assertEquals(test_endpoint["returns"]["resource_type"], "DateTimeResource")
+        self.assertEquals(test_endpoint["arguments"]["month"]["min_value"], 1)
 
 
-
-
-
+    def test_generate_raml_resource_types(self):
+        test_types = generate_raml_resource_types(self.example_app)
+        test_string = "day:\n        type: integer\n        description: The date of the month"
+        self.assertTrue(test_string in test_types,
+                "Contains some of the output we expect")
+        self.assertTrue("affords\n" not in test_types,
+                "Does not contain newlines in descriptions")
 
 
 

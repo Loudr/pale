@@ -314,7 +314,7 @@ def generate_raml_resource_types(module):
     RAML calls Pale resources 'resourceTypes'. This function converts Pale
     resources into the RAML resourceType format.
 
-    The returned string should be appended to the RAML documentation file
+    The returned string should be appended to the RAML documentation string
     before it is returned.
     """
 
