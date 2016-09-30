@@ -111,7 +111,6 @@ def generate_raml_docs(module, fields, shared_types, title="My API", version="v1
     for shared_type in shared_types:
 
         for field_class in inspect.getmembers(shared_type, inspect.isclass):
-
             shared_fields.append(field_class[1])
 
     pale_shared_types = generate_basic_type_docs(shared_fields, pale_basic_types[1])
@@ -585,6 +584,9 @@ def generate_raml_resources(module, version):
             indent += "  "
             this_endpoint = tree["endpoint"]
 
+            if this_endpoint.get("requires_permission") != None:
+                print 'this endpoint requires permission: %s' % this_endpoint["requires_permission"]
+
             # add the HTTP method
             if this_endpoint.get("http_method") != None:
                 output.write(indent + this_endpoint["http_method"].lower() + ":\n")
@@ -729,6 +731,8 @@ def document_endpoint(endpoint):
     }
     if hasattr(endpoint, "_success"):
         docs["success"] = endpoint._success
+    if hasattr(endpoint, "_requires_permission"):
+        docs["requires_permission"] = endpoint._requires_permission
     return docs
 
 

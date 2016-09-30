@@ -6,6 +6,7 @@ import inspect
 import logging
 from os import path
 import types
+import re
 
 from . import adapters
 from . import arguments
@@ -64,6 +65,11 @@ def extract_endpoints(api_module):
     for cls in classes:
         if cls not in (Endpoint, PatchEndpoint, PutResourceEndpoint) and \
                 Endpoint in inspect.getmro(cls):
+            source_code = inspect.getsource(cls)
+            if "@requires_permission" in source_code:
+                permission_match = re.search(r"@requires_permission\([\'\"]+(\w+)[\'\"]+", source_code)
+                if permission_match != None:
+                    cls._requires_permission = permission_match.group(1)
             instances.append(cls())
     return instances
 
