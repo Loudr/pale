@@ -77,7 +77,7 @@ def generate_json_docs(module, pretty_print=False):
     return json_str
 
 
-def generate_raml_docs(module, fields, shared_types, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
+def generate_raml_docs(module, fields, shared_types, user, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
     """Return a RAML file of a Pale module's documentation as a string.
 
     The arguments for 'title', 'version', and 'base_uri' are added to the RAML header info.
@@ -122,7 +122,7 @@ def generate_raml_docs(module, fields, shared_types, title="My API", version="v1
     output.write("\n# API Resource Types:\n\n")
     output.write(raml_resource_types)
 
-    raml_resources = generate_raml_resources(module, version)
+    raml_resources = generate_raml_resources(module, version, user)
     output.write("\n\n###############\n# API Endpoints:\n###############\n\n")
     output.write(raml_resources)
 
@@ -540,7 +540,7 @@ def generate_raml_tree(flat_resources, version):
     return resource_tree
 
 
-def generate_raml_resources(module, version):
+def generate_raml_resources(module, version, user):
     """Compile a Pale module's endpoint documentation into RAML format.
 
     RAML calls Pale endpoints 'resources'. This function converts Pale
@@ -575,103 +575,111 @@ def generate_raml_resources(module, version):
         "ListArgument": "array"
     }
 
-    def print_resource_tree(tree, output, indent, level=0):
-        """Walk the tree and add the appropriate documentation to the output buffer.
+    def print_resource_tree(tree, output, indent, user, level=0):
+        """Walk the tree and add the endpoint documentation to the output buffer.
+        The user will only see documentation for endpoints they have the appropriate
+        permissions for.
         """
 
-        # check for an endpoint at this level first, and add if it exists
+        # check for an endpoint at this level first
         if tree.get("endpoint") != None:
-            indent += "  "
+
             this_endpoint = tree["endpoint"]
 
-            if this_endpoint.get("requires_permission") != None:
-                print 'this endpoint requires permission: %s' % this_endpoint["requires_permission"]
+            # check if user has permission to view this endpoint
+            # @TODO - make this permission more granular if necessary
+            if this_endpoint.get("requires_permission") != None and user.is_admin or \
+                this_endpoint.get("requires_permission") == None:
 
-            # add the HTTP method
-            if this_endpoint.get("http_method") != None:
-                output.write(indent + this_endpoint["http_method"].lower() + ":\n")
+                print 'this endpoint requires permission = %r' % this_endpoint.get("requires_permission")
+                print 'this user is admin: %r' % user.is_admin
+
                 indent += "  "
-
-                # add the description
-                if this_endpoint.get("description") != None:
-                    modified_description = description_compiler.sub(' ', this_endpoint["description"], 0)
-                    output.write(indent + "description: " + modified_description + "\n")
-
-                # add queryParameters per RAML spec
-                if this_endpoint.get("arguments") != None and len(this_endpoint["arguments"]) > 0:
-                    output.write(indent + "queryParameters:\n")
-                    sorted_arguments = OrderedDict(sorted(this_endpoint["arguments"].items(), key=lambda t: t[0]))
+                # add the HTTP method
+                if this_endpoint.get("http_method") != None:
+                    output.write(indent + this_endpoint["http_method"].lower() + ":\n")
                     indent += "  "
 
-                    for argument in sorted_arguments:
-                        output.write(indent + argument + ":\n")
+                    # add the description
+                    if this_endpoint.get("description") != None:
+                        modified_description = description_compiler.sub(' ', this_endpoint["description"], 0)
+                        output.write(indent + "description: " + modified_description + "\n")
+
+                    # add queryParameters per RAML spec
+                    if this_endpoint.get("arguments") != None and len(this_endpoint["arguments"]) > 0:
+                        output.write(indent + "queryParameters:\n")
+                        sorted_arguments = OrderedDict(sorted(this_endpoint["arguments"].items(), key=lambda t: t[0]))
                         indent += "  "
-                        this_argument = sorted_arguments[argument]
 
-                        for arg_detail in this_argument:
-                            # check for special kinds of queryParameters
-                            this_arg_detail = this_argument[arg_detail]
+                        for argument in sorted_arguments:
+                            output.write(indent + argument + ":\n")
+                            indent += "  "
+                            this_argument = sorted_arguments[argument]
 
-                            if this_arg_detail != None:
+                            for arg_detail in this_argument:
+                                # check for special kinds of queryParameters
+                                this_arg_detail = this_argument[arg_detail]
 
-                                if arg_detail == "default":
-                                    output.write(indent + arg_detail + ": " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "description":
-                                    output.write(indent + "description: " + this_arg_detail + "\n")
-                                elif arg_detail == "type":
-                                    if pale_argument_type_map.get(this_arg_detail) != None:
-                                        if pale_argument_type_map[this_arg_detail] == "array":
-                                            # @TODO set the items dynamically
-                                            output.write(indent + "type: array\n")
-                                            output.write(indent + "items: string\n")
+                                if this_arg_detail != None:
+
+                                    if arg_detail == "default":
+                                        output.write(indent + arg_detail + ": " + str(this_arg_detail) + "\n")
+                                    elif arg_detail == "description":
+                                        output.write(indent + "description: " + this_arg_detail + "\n")
+                                    elif arg_detail == "type":
+                                        if pale_argument_type_map.get(this_arg_detail) != None:
+                                            if pale_argument_type_map[this_arg_detail] == "array":
+                                                # @TODO set the items dynamically
+                                                output.write(indent + "type: array\n")
+                                                output.write(indent + "items: string\n")
+                                            else:
+                                                output.write(indent + "type: " + pale_argument_type_map[this_arg_detail].replace(" ", "_") + "\n")
                                         else:
-                                            output.write(indent + "type: " + pale_argument_type_map[this_arg_detail].replace(" ", "_") + "\n")
-                                    else:
-                                        output.write(indent + "type: " + this_arg_detail.replace(" ", "_") + "\n")
-                                elif arg_detail == "required":
-                                    output.write(indent + "required" + ": " + str(this_arg_detail).lower() + "\n")
-                                elif arg_detail == "min_length":
-                                    output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "max_length":
-                                    output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "min_value":
-                                    output.write(indent + "minimum: " + str(this_arg_detail) + "\n")
-                                elif arg_detail == "max_value":
-                                    output.write(indent + "maximum: " + str(this_arg_detail) + "\n")
+                                            output.write(indent + "type: " + this_arg_detail.replace(" ", "_") + "\n")
+                                    elif arg_detail == "required":
+                                        output.write(indent + "required" + ": " + str(this_arg_detail).lower() + "\n")
+                                    elif arg_detail == "min_length":
+                                        output.write(indent + "minLength: " + str(this_arg_detail) + "\n")
+                                    elif arg_detail == "max_length":
+                                        output.write(indent + "maxLength: " + str(this_arg_detail) + "\n")
+                                    elif arg_detail == "min_value":
+                                        output.write(indent + "minimum: " + str(this_arg_detail) + "\n")
+                                    elif arg_detail == "max_value":
+                                        output.write(indent + "maximum: " + str(this_arg_detail) + "\n")
 
-                        indent = indent[:-2]    # reset indent after arg_detail
+                            indent = indent[:-2]    # reset indent after arg_detail
 
-                    indent = indent[:-2]    # reset indent after argument
+                        indent = indent[:-2]    # reset indent after argument
 
-                # add the responses
-                if this_endpoint.get("returns") != None and len(this_endpoint["returns"]) > 0:
-                    output.write(indent + "responses:\n")
-                    this_response = this_endpoint["returns"]
-                    indent += "  "
+                    # add the responses
+                    if this_endpoint.get("returns") != None and len(this_endpoint["returns"]) > 0:
+                        output.write(indent + "responses:\n")
+                        this_response = this_endpoint["returns"]
+                        indent += "  "
 
-                    # @TODO refactor the endpoints so that they use a variable called _success
-                    # to determine the HTTP code for a successful response
-                    # (see changes made to history.py)
+                        # @TODO refactor the endpoints so that they use a variable called _success
+                        # to determine the HTTP code for a successful response
+                        # (see changes made to history.py)
 
-                    if this_response.get("success") != None:
-                        output.write(indent + str(this_response["success"]) + ":\n")
-                    else:
-                        output.write(indent + "200:\n")
-                    indent += "  "
-                    output.write(indent + "body:\n")
-                    indent += "  "
+                        if this_response.get("success") != None:
+                            output.write(indent + str(this_response["success"]) + ":\n")
+                        else:
+                            output.write(indent + "200:\n")
+                        indent += "  "
+                        output.write(indent + "body:\n")
+                        indent += "  "
 
-                    for res_detail in this_response:
-                        if res_detail != "success":
-                            if res_detail == "resource_type":
-                                output.write(indent + "type: " + this_endpoint["returns"][res_detail].replace(" ", "_") + "\n")
-                            elif res_detail == "description":
-                                modified_description = string_format_compiler.sub("", this_endpoint["returns"][res_detail], 0).replace("  ", " ")
-                                output.write(indent + "description: " + modified_description + "\n")
+                        for res_detail in this_response:
+                            if res_detail != "success":
+                                if res_detail == "resource_type":
+                                    output.write(indent + "type: " + this_endpoint["returns"][res_detail].replace(" ", "_") + "\n")
+                                elif res_detail == "description":
+                                    modified_description = string_format_compiler.sub("", this_endpoint["returns"][res_detail], 0).replace("  ", " ")
+                                    output.write(indent + "description: " + modified_description + "\n")
 
-                    indent = indent [:-6]   # resent indent after responses
+                        indent = indent [:-6]   # resent indent after responses
 
-                indent = indent [:-2]   # reset indent after endpoint
+                    indent = indent [:-2]   # reset indent after endpoint
 
         # check for further branches and recurse on them
         if tree.get("path") != None and len(tree["path"]) > 0:
@@ -681,12 +689,12 @@ def generate_raml_resources(module, version):
                 indent = level * "  "
             for branch in tree["path"]:
                 output.write(indent + "/" + branch + ":\n")
-                print_resource_tree(tree["path"][branch], output, indent, level=level+1)
+                print_resource_tree(tree["path"][branch], output, indent, user, level=level+1)
 
 
     output = StringIO()
     indent = ""
-    print_resource_tree(raml_resource_doc_tree, output, indent)
+    print_resource_tree(raml_resource_doc_tree, output, indent, user)
     raml_resources = output.getvalue()
     output.close()
     return raml_resources

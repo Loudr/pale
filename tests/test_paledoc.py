@@ -159,6 +159,7 @@ class PaleDocTests(unittest.TestCase):
                 "type": "base"
             }
         }
+
         # set up basic fields the same way as generate_raml_docs
         basic_fields = []
         for field_module in inspect.getmembers(fields, inspect.ismodule):
@@ -181,6 +182,7 @@ class PaleDocTests(unittest.TestCase):
         raml_resources = extract_endpoints(self.example_app)
         raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
         test_tree = generate_raml_tree(raml_resource_doc_flat, version="")
+
         # check if the tree is parsing the URIs correctly
         self.assertTrue(test_tree.get("path") != None)
         self.assertTrue(test_tree["path"]["time"] != None)
@@ -189,7 +191,9 @@ class PaleDocTests(unittest.TestCase):
                 "Includes parent folder in the path for URIs")
         self.assertTrue(test_tree["path"]["arg_test/{arg_a}"]["path"]["{arg_b}"] != None,
                 "Correctly parses nested URIS")
+
         test_endpoint = test_tree["path"]["time"]["path"]["parse"]["endpoint"]
+
         # check if the endpoint contains what we expect
         self.assertEquals(test_endpoint["http_method"], "POST")
         self.assertEquals(test_endpoint["returns"]["resource_type"], "DateTimeResource")
@@ -206,13 +210,30 @@ class PaleDocTests(unittest.TestCase):
 
 
     def test_generate_raml_resources(self):
-        test_resources = generate_raml_resources(self.example_app, "")
+
+        # mock a user instance
+        class User(object):
+            def __init__(self, is_admin):
+                self.is_admin = is_admin
+
+        test_admin_user = User(True)
+        test_public_user = User(False)
+        test_resources_admin = generate_raml_resources(self.example_app, "", test_admin_user)
         test_string = "responses:\n      200:\n        body:\n          description: app resource."
-        self.assertTrue(test_string in test_resources,
+
+        self.assertTrue(test_string in test_resources_admin,
                 "Contains some of the output we expect")
-        self.assertTrue("start time.\n" not in test_resources,
+        self.assertTrue("start time.\n" not in test_resources_admin,
                 "Does not contain newlines in descriptions")
-        self.assertTrue("<" not in test_resources,
+        self.assertTrue("<" not in test_resources_admin,
                 """Does not contain the machine code version of string formatting, like
                 '<pale.fields.string.StringField object at 0x1132bd2d0>'
                 for example""")
+
+        test_resources_public = generate_raml_resources(self.example_app, "", test_public_user)
+        test_restricted_resource = "Include the time in the output?"
+
+        self.assertTrue(test_restricted_resource not in test_resources_public,
+                "Does not include restricted resources for public users")
+        self.assertTrue(test_restricted_resource in test_resources_admin,
+                "Does include restricted resources for admin users")

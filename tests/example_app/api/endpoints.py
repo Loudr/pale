@@ -38,6 +38,10 @@ class ParseTimeEndpoint(Endpoint):
     """Parses some passed in parameters to generate a corresponding
     DateTimeResource.
     """
+
+    # mock the permissions:
+    # @requires_permission("licensing")
+
     _http_method = "POST"
     _uri = "/time/parse"
     _route_name = "parse_time"
