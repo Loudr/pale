@@ -77,8 +77,12 @@ def generate_json_docs(module, pretty_print=False):
     return json_str
 
 
-def generate_raml_docs(module, fields, shared_types, user, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
+def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
     """Return a RAML file of a Pale module's documentation as a string.
+
+    The user argument is optional. If included, it expects the user to be an object with an "is_admin"
+    boolean attribute. Any endpoint protected with a "@requires_permission" decorator will require
+    user.is_admin == True to display documentation on that endpoint.
 
     The arguments for 'title', 'version', and 'base_uri' are added to the RAML header info.
     """
@@ -587,8 +591,10 @@ def generate_raml_resources(module, version, user):
             this_endpoint = tree["endpoint"]
 
             # check if user has permission to view this endpoint
+            # this is currently an on/off switch: if any endpoint has a "@requires_permission"
+            # decorator, user.is_admin must be True for the user to see documentation
             # @TODO - make this permission more granular if necessary
-            if this_endpoint.get("requires_permission") != None and user.is_admin or \
+            if this_endpoint.get("requires_permission") != None and user != None and user.is_admin or \
                 this_endpoint.get("requires_permission") == None:
 
                 print 'this endpoint requires permission = %r' % this_endpoint.get("requires_permission")
