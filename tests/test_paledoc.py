@@ -136,7 +136,7 @@ class PaleDocTests(unittest.TestCase):
 
 
     def test_clean_description(self):
-        """The descriptions need to be free artifacts created by the documentation process.
+        """The descriptions need to be free of artifacts created by the documentation process.
         Also, any string that doesn't end with punctuation is given a period."""
 
         test_leading_spaces = clean_description("   Hey,")
