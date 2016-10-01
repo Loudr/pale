@@ -12,17 +12,6 @@ except:
 
 from pale.utils import py_doc_trim
 
-# this will be useful in removing newlines and leading whitespace from descriptions
-description_compiler = re.compile(r"\n\s*")
-
-# this will be useful in replacing colons in descriptions
-colon_compiler = re.compile(r":")
-
-# this will be useful in removing things like:
-#   <pale.fields.string.StringField object at 0x106edbed0>
-# from descriptions
-string_format_compiler = re.compile(r"(<.+>)")
-
 def run_pale_doc():
     parser = argparse.ArgumentParser()
     parser.add_argument('path_to_pale_module')
@@ -53,6 +42,38 @@ def initify_module_path(path):
     if not path.endswith('/'):
         path = path + '/'
     return path + init
+
+
+def clean_description(string):
+    """Clean strings returned from API resources and endpoints:
+        - remove newlines and leading whitespace
+        - replace colons with &#58; to avoid problems with RAML validation
+        - remove things like: <pale.fields.string.StringField object at 0x106edbed0>
+        - replace double spaces with single spaces
+        - if there is not a period, comma, question mark or exclamation point at the end of a string,
+          add a period
+    """
+
+    leading_whitespace = re.compile(r"(\A\s+)")
+    multiple_spaces = re.compile(r"(\s+\s+)")
+    newlines = re.compile(r"\n")
+    colons = re.compile(r":(?!//)")
+    machine_code = re.compile(r"(<.+>)")
+    punctuation = re.compile(r"[\.!?,]")
+
+    result = leading_whitespace.sub("", string, 0)
+    result = newlines.sub(" ", result, 0)
+    result = colons.sub('=', result, 0)
+    result = machine_code.sub("", result, 0)
+    result = multiple_spaces.sub(" ", result, 0)
+    has_punctuation = punctuation.search(result[-1:]) != None
+
+    if not has_punctuation:
+        result = result + "."
+    else:
+        result = result
+
+    return result
 
 
 def generate_json_docs(module, pretty_print=False):
@@ -269,9 +290,7 @@ def generate_basic_type_docs(fields, existing_types):
 
                 # strip newlines and leading whitespaces from doc string, then add as description
                 if hasattr(field, "__doc__"):
-                    description = field.__doc__
-                    modified_description = description_compiler.sub(' ', description, 0)
-                    modified_description = colon_compiler.sub(';', modified_description, 0)
+                    modified_description = clean_description(field.__doc__)
                     basic_types[type_name]["description"] = modified_description
 
                 # if this type is listed as the child of a built-in raml type,
@@ -339,8 +358,7 @@ def generate_raml_resource_types(module):
         resource_name = resource.__name__
         raml_resource_types_unsorted[resource_name] = document_resource(resource)
         if hasattr(resource, "_description"):
-            modified_description = description_compiler.sub(' ',resource._description, 0)
-            modified_description = colon_compiler.sub(';', modified_description, 0)
+            modified_description = clean_description(resource._description)
             raml_resource_types_unsorted[resource_name]["description"] = modified_description
 
     raml_resource_types_doc = OrderedDict(sorted(raml_resource_types_unsorted.items(), key=lambda t: t[0]))
@@ -363,8 +381,7 @@ def generate_raml_resource_types(module):
 
             # add the description
             if this_resource_type.get("description") != None:
-                modified_description = description_compiler.sub(' ',this_resource_type["description"], 0)
-                modified_description = colon_compiler.sub(';', modified_description, 0)
+                modified_description = clean_description(this_resource_type["description"])
                 output.write(indent + "description: " + modified_description + "\n")
 
             # if there are no fields, set type directly:
@@ -409,14 +426,11 @@ def generate_raml_resource_types(module):
 
                     # if extended description exists, strip newlines and whitespace and add as description
                     if properties.get("extended_description") != None:
-                        description = properties["extended_description"]
-                        modified_description = description_compiler.sub(' ', description, 0)
-                        modified_description = colon_compiler.sub(';', modified_description, 0)
+                        modified_description = clean_description(properties["extended_description"])
                         output.write(indent + "description: " + modified_description + "\n")
                     # otherwise, use description
                     elif properties.get("description") != None:
-                        modified_description = description_compiler.sub(' ', properties["description"], 0)
-                        modified_description = colon_compiler.sub(';', modified_description, 0)
+                        modified_description = clean_description(properties["description"])
                         output.write(indent + "description: " + modified_description + "\n")
 
                     if properties.get("default_fields") != None:
@@ -608,7 +622,7 @@ def generate_raml_resources(module, version, user):
 
                     # add the description
                     if this_endpoint.get("description") != None:
-                        modified_description = description_compiler.sub(' ', this_endpoint["description"], 0)
+                        modified_description = clean_description(this_endpoint["description"])
                         output.write(indent + "description: " + modified_description + "\n")
 
                     # add queryParameters per RAML spec
@@ -680,7 +694,7 @@ def generate_raml_resources(module, version, user):
                                 if res_detail == "resource_type":
                                     output.write(indent + "type: " + this_endpoint["returns"][res_detail].replace(" ", "_") + "\n")
                                 elif res_detail == "description":
-                                    modified_description = string_format_compiler.sub("", this_endpoint["returns"][res_detail], 0).replace("  ", " ")
+                                    modified_description = clean_description(this_endpoint["returns"][res_detail])
                                     output.write(indent + "description: " + modified_description + "\n")
 
                         indent = indent [:-6]   # resent indent after responses

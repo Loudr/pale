@@ -4,7 +4,7 @@ import inspect
 
 from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_docs, \
   document_endpoint, generate_raml_tree, generate_raml_resource_types, \
-  generate_raml_resources
+  generate_raml_resources, clean_description
 
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
@@ -133,6 +133,26 @@ class PaleDocTests(unittest.TestCase):
         self.assertEqual(incl_time['type'], 'BooleanArgument')
         self.assertEqual(incl_time['default'], False)
         self.assertEqual(incl_time['required'], False)
+
+
+    def test_clean_description(self):
+        """The descriptions need to be free artifacts created by the documentation process.
+        Also, any string that doesn't end with punctuation is given a period."""
+
+        test_leading_spaces = clean_description("   Hey,")
+        self.assertEquals(test_leading_spaces, "Hey,")
+        test_multiple_spaces = clean_description("   look at this!")
+        self.assertEquals(test_multiple_spaces, "look at this!")
+        test_newlines = clean_description("\nsomeone left")
+        self.assertEquals(test_newlines, "someone left.")
+        test_colon = clean_description("this : sentence")
+        self.assertEquals(test_colon, "this = sentence.")
+        test_colon_url = clean_description("at https://loudr.fm")
+        self.assertEquals(test_colon_url, "at https://loudr.fm.")
+        test_machine_code = clean_description("(with code in it)<pale.fields.string.StringField object at 0x106edbed0>")
+        self.assertEquals(test_machine_code, "(with code in it).")
+        test_punctuation = clean_description("hanging")
+        self.assertEquals(test_punctuation, "hanging.")
 
 
     def test_resource_doc(self):
