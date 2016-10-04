@@ -86,7 +86,7 @@ class PaleDocTests(unittest.TestCase):
         # the year argument
         year_arg = args['year']
         self.assertEqual(year_arg['description'],
-                "Set the year of the returned datetime")
+                "Set the year of the returned datetime.")
         self.assertFalse('detailed_description' in year_arg)
         self.assertEqual(year_arg['type'], 'IntegerArgument')
         self.assertEqual(year_arg['default'], 2015)
@@ -95,7 +95,7 @@ class PaleDocTests(unittest.TestCase):
         # month, which has min and max values
         month_arg = args['month']
         self.assertEqual(month_arg['description'],
-                "Set the month of the returned datetime")
+                "Set the month of the returned datetime.")
         self.assertFalse('detailed_description' in month_arg)
         self.assertEqual(month_arg['type'], 'IntegerArgument')
         self.assertEqual(month_arg['default'], None)
@@ -106,7 +106,7 @@ class PaleDocTests(unittest.TestCase):
         # day, which is barebones
         day_arg = args['day']
         self.assertEqual(day_arg['description'],
-                "Set the day of the returned datetime")
+                "Set the day of the returned datetime.")
         self.assertFalse('detailed_description' in day_arg)
         self.assertEqual(day_arg['type'], 'IntegerArgument')
         self.assertEqual(day_arg['default'], None)
@@ -115,7 +115,7 @@ class PaleDocTests(unittest.TestCase):
         # name arg
         name_arg = args['name']
         self.assertEqual(name_arg['description'],
-                "The name for your datetime")
+                "The name for your datetime.")
         self.assertEqual(name_arg['detailed_description'],
                 "You can give your time a name, which will be returned back to you in the response, as the field `name`. If you omit this input parameter, your response won't include a `name`.")
         self.assertEqual(name_arg['type'], 'StringArgument')
@@ -153,6 +153,9 @@ class PaleDocTests(unittest.TestCase):
         self.assertEquals(test_machine_code, "(with code in it).")
         test_punctuation = clean_description("hanging")
         self.assertEquals(test_punctuation, "hanging.")
+        test_empty_string = clean_description("")
+        self.assertEquals(test_empty_string, "",
+            "Leaves empty strings as they are.")
 
 
     def test_resource_doc(self):
@@ -168,7 +171,7 @@ class PaleDocTests(unittest.TestCase):
         resource = resources['DateTime Range Resource']
         self.assertEqual(resource['name'], 'DateTime Range Resource')
         self.assertEqual(resource['description'],
-                'A time range that returns some nested resources')
+                'A time range that returns some nested resources.')
 
 
     def test_generate_basic_type_docs(self):

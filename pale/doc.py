@@ -68,7 +68,7 @@ def clean_description(string):
     result = multiple_spaces.sub(" ", result, 0)
     has_punctuation = punctuation.search(result[-1:]) != None
 
-    if not has_punctuation:
+    if not has_punctuation and result != "":
         result = result + "."
     else:
         result = result
@@ -115,7 +115,6 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write('baseUri: ' + base_uri + ' \n')
     output.write('version: ' + version + '\n')
     output.write('mediaType: application/json\n\n')
-
     output.write("###############\n# Resource Types:\n###############\n\n")
     output.write('types:\n')
 
@@ -800,8 +799,16 @@ def format_endpoint_returns_doc(endpoint):
 
 
 def document_resource(resource):
-    field_doc = { name: field.doc_dict() for name, field \
-            in resource._fields.iteritems() }
+
+    field_doc = {}
+
+    for name, field in resource._fields.iteritems():
+        doc_dict = field.doc_dict()
+        if doc_dict.get("description") != None:
+            doc_dict["description"] = clean_description(doc_dict["description"])
+        if doc_dict.get("extended_description") != None:
+            doc_dict["extended_description"] = clean_description(doc_dict["extended_description"])
+        field_doc[name] = doc_dict
 
     res_doc = {
         'name': resource._value_type,
@@ -811,5 +818,4 @@ def document_resource(resource):
     }
     if resource._default_fields:
         res_doc['default_fields'] = list(resource._default_fields)
-        # @TODO start here - loop through res_doc["default_fields"] and clean descriptions
     return res_doc
