@@ -748,7 +748,7 @@ def generate_doc_dict(module):
 
 def document_endpoint(endpoint):
     """Extract the full documentation dictionary from the endpoint."""
-    descr = py_doc_trim(endpoint.__doc__)
+    descr = clean_description(py_doc_trim(endpoint.__doc__))
     docs = {
         'name': endpoint._route_name,
         'http_method': endpoint._http_method,
@@ -781,17 +781,17 @@ def format_endpoint_argument_doc(argument):
     doc = argument.doc_dict()
 
     # Trim the strings a bit
-    doc['description'] = py_doc_trim(doc['description'])
+    doc['description'] = clean_description(py_doc_trim(doc['description']))
     details = doc.get('detailed_description', None)
     if details is not None:
-        doc['detailed_description'] = py_doc_trim(details)
+        doc['detailed_description'] = clean_description(py_doc_trim(details))
 
     return doc
 
 
 def format_endpoint_returns_doc(endpoint):
     """Return documentation about the resource that an endpoint returns."""
-    description = py_doc_trim(endpoint._returns._description)
+    description = clean_description(py_doc_trim(endpoint._returns._description))
     return {
         'description': description,
         'resource_name': endpoint._returns._value_type,
@@ -805,10 +805,11 @@ def document_resource(resource):
 
     res_doc = {
         'name': resource._value_type,
-        'description': py_doc_trim(resource.__doc__),
+        'description': clean_description(py_doc_trim(resource.__doc__)),
         'fields': field_doc,
         'default_fields': None,
     }
     if resource._default_fields:
         res_doc['default_fields'] = list(resource._default_fields)
+        # @TODO start here - loop through res_doc["default_fields"] and clean descriptions
     return res_doc
