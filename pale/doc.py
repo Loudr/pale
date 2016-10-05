@@ -29,7 +29,7 @@ def run_pale_doc():
     except Exception as e:
         print e
         return
-    json_docs = generate_json_docs(pale_module, args.pretty)
+    json_docs = generate_json_docs(pale_module, args.pretty, user=None)
     if args.print_newlines:
         json_docs = json_docs.replace('\\n', '\n')
     print json_docs
@@ -76,7 +76,7 @@ def clean_description(string):
     return result
 
 
-def generate_json_docs(module, pretty_print=False):
+def generate_json_docs(module, pretty_print=False, user=None):
     """Return a JSON string format of a Pale module's documentation.
 
     This string can either be printed out, written to a file, or piped to some
@@ -84,6 +84,10 @@ def generate_json_docs(module, pretty_print=False):
 
     This method is a shorthand for calling `generate_doc_dict` and passing
     it into a json serializer.
+
+    The user argument is optional. If included, it expects the user to be an object with an "is_admin"
+    boolean attribute. Any endpoint protected with a "@requires_permission" decorator will require
+    user.is_admin == True to display documentation on that endpoint.
     """
     indent = None
     separators = (',', ':')
@@ -91,7 +95,7 @@ def generate_json_docs(module, pretty_print=False):
         indent = 4
         separators = (',', ': ')
 
-    module_doc_dict = generate_doc_dict(module)
+    module_doc_dict = generate_doc_dict(module, user)
     json_str = json.dumps(module_doc_dict,
             indent=indent,
             separators=separators)
@@ -610,9 +614,6 @@ def generate_raml_resources(module, version, user):
             if this_endpoint.get("requires_permission") != None and user != None and user.is_admin or \
                 this_endpoint.get("requires_permission") == None:
 
-                print 'this endpoint requires permission = %r' % this_endpoint.get("requires_permission")
-                print 'this user is admin: %r' % user.is_admin
-
                 indent += "  "
                 # add the HTTP method
                 if this_endpoint.get("http_method") != None:
@@ -720,7 +721,7 @@ def generate_raml_resources(module, version, user):
 
 
 
-def generate_doc_dict(module):
+def generate_doc_dict(module, user):
     """Compile a Pale module's documentation into a python dictionary.
 
     The returned dictionary is suitable to be rendered by a JSON formatter,
@@ -736,6 +737,18 @@ def generate_doc_dict(module):
     module_endpoints = extract_endpoints(module)
     ep_doc = { ep._route_name: document_endpoint(ep) for ep \
             in module_endpoints }
+
+    ep_doc_filtered = {}
+
+    for endpoint in ep_doc:
+        # check if user has permission to view this endpoint
+        # this is currently an on/off switch: if any endpoint has a "@requires_permission"
+        # decorator, user.is_admin must be True for the user to see documentation
+        # @TODO - make this permission more granular if necessary
+
+        if ep_doc[endpoint].get("requires_permission") != None and user != None and user.is_admin or \
+            ep_doc[endpoint].get("requires_permission") == None:
+            ep_doc_filtered[endpoint] = ep_doc[endpoint]
 
     module_resources = extract_resources(module)
     res_doc = { r._value_type: document_resource(r) for r \
