@@ -102,7 +102,7 @@ def generate_json_docs(module, pretty_print=False, user=None):
     return json_str
 
 
-def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
+def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", api_root="api", base_uri="http://mysite.com/{apiRoot}/{version}"):
     """Return a RAML file of a Pale module's documentation as a string.
 
     The user argument is optional. If included, it expects the user to be an object with an "is_admin"
@@ -118,7 +118,11 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write('title: ' + title + ' \n')
     output.write('baseUri: ' + base_uri + ' \n')
     output.write('version: ' + version + '\n')
-    output.write('mediaType: application/json\n\n')
+    output.write('apiRoot: ' + api_root + '\n')
+    output.write('mediaType: application/json\n')
+    output.write('baseUriParameters:\n')
+    output.write('  apiRoot:\n')
+    output.write('    description: Root directory of this API\n\n')
     output.write("###############\n# Resource Types:\n###############\n\n")
     output.write('types:\n')
 
@@ -150,7 +154,7 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write("\n# API Resource Types:\n\n")
     output.write(raml_resource_types)
 
-    raml_resources = generate_raml_resources(module, version, user)
+    raml_resources = generate_raml_resources(module, api_root, user)
     output.write("\n\n###############\n# API Endpoints:\n###############\n\n")
     output.write(raml_resources)
 
@@ -456,7 +460,7 @@ def generate_raml_resource_types(module):
 
 
 
-def generate_raml_tree(flat_resources, version):
+def generate_raml_tree(flat_resources, api_root):
     """Generate a dict of OrderedDicts, using the URIs of the Pale endpoints as the structure for the tree.
     Each level of the tree will contain a "path" property and an "endpoint" property.
     The "path" will contain further nested endpoints, sorted alphabetically.
@@ -541,7 +545,7 @@ def generate_raml_tree(flat_resources, version):
             # leftmost element in list is root of path
             for match in uri_matches:
                 for directory in match:
-                    if directory != "" and directory != version:
+                    if directory != "" and directory != api_root:
                         branch = directory
                         matched_group = re.search('([\w+/]?[<:!\?\+\(\.\*\)>\w]+>)', directory)
                         if matched_group:
@@ -561,7 +565,10 @@ def generate_raml_tree(flat_resources, version):
     return resource_tree
 
 
-def generate_raml_resources(module, version, user):
+
+
+
+def generate_raml_resources(module, api_root, user):
     """Compile a Pale module's endpoint documentation into RAML format.
 
     RAML calls Pale endpoints 'resources'. This function converts Pale
@@ -580,7 +587,7 @@ def generate_raml_resources(module, version, user):
 
     raml_resources = extract_endpoints(module)
     raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
-    raml_resource_doc_tree = generate_raml_tree(raml_resource_doc_flat, version)
+    raml_resource_doc_tree = generate_raml_tree(raml_resource_doc_flat, api_root)
 
     # @TODO generate this dynamically
     pale_argument_type_map = {
@@ -595,6 +602,44 @@ def generate_raml_resources(module, version, user):
         "StringChoiceArgument": "string",
         "ListArgument": "array"
     }
+
+    def check_subtree_for_permissions(subtree, api_root, private_endpoints={}):
+        """Recursively check a subtree to see if any of its children require permissions.
+        Returns a map of private endpoints, where the key is the endpoint's URI and the
+        value is a dict with a requires_permission property equal to the permission required."""
+
+        if subtree.get("path") != None and len(subtree["path"]) > 0:
+            path = subtree["path"]
+            for branch in path:
+                if path[branch].get("endpoint") != None and path[branch]["endpoint"].get("requires_permission") != None \
+                and branch != api_root:
+                    private_endpoints[branch] = {}
+                    private_endpoints[branch]["requires_permission"] = path[branch]["endpoint"]["requires_permission"]
+                check_subtree_for_permissions(path[branch], private_endpoints)
+
+        return private_endpoints
+
+    def check_children_for_public_endpoints(subtree):
+        """Recursively check a subtree to see if any of its children require permissions.
+        Returns an object with property "public" set to True
+        if there are children that do not require permissions, false if not."""
+
+        found_children = {}
+        found_children["public"] = False
+
+        def subroutine(subtree, found_children):
+            if subtree.get("path") != None and len(subtree["path"]) > 0:
+                path = subtree["path"]
+                for branch in path:
+                    if path[branch].get("endpoint") != None and path[branch]["endpoint"].get("requires_permission") == None:
+                        found_children["public"] = True
+                    else:
+                        subroutine(path[branch], found_children)
+
+        subroutine(subtree, found_children)
+
+        return found_children
+
 
     def print_resource_tree(tree, output, indent, user, level=0):
         """Walk the tree and add the endpoint documentation to the output buffer.
@@ -701,19 +746,44 @@ def generate_raml_resources(module, version, user):
 
                     indent = indent [:-2]   # reset indent after endpoint
 
+
         # check for further branches and recurse on them
         if tree.get("path") != None and len(tree["path"]) > 0:
             # only increase the indent if we are not on root level
             if level > 0:
                 # set the base indentation per the level we are at in the tree
                 indent = level * "  "
-            for branch in tree["path"]:
-                output.write(indent + "/" + branch + ":\n")
-                print_resource_tree(tree["path"][branch], output, indent, user, level=level+1)
+
+            subtree = tree["path"]
+
+            admin_user = user!= None and user.is_admin != None and user.is_admin
+
+            for branch in subtree:
+                # if the user is admin:
+                if admin_user:
+                    # write the branch name
+                    output.write(indent + "/" + branch + ":\n")
+                    # and continue printing the endpoints
+                    print_resource_tree(subtree[branch], output, indent, user, level=level+1)
+
+                # endpoint_is_private = subtree[branch].get("endpoint") != None and subtree[branch]["endpoint"].get("requires_permission") != None
+                endpoint_is_private = True
+                # has_public_children = check_children_for_public_endpoints(subtree[branch])["public"]
+                has_public_children = True
+
+                endpoint_qualifies = endpoint_is_private and has_public_children
+
+                # or if user is not admin, and this endpoint is private, and it has public children:
+                elif True: # @TODO where is the syntax error?
+                    # write branch name
+                    output.write(indent + "/" + branch + ":\n")
+                    # and continue printing the endpoints
+                    print_resource_tree(subtree[branch], output, indent, user, level=level+1)
 
 
     output = StringIO()
     indent = ""
+
     print_resource_tree(raml_resource_doc_tree, output, indent, user)
     raml_resources = output.getvalue()
     output.close()
@@ -754,7 +824,7 @@ def generate_doc_dict(module, user):
     res_doc = { r._value_type: document_resource(r) for r \
             in module_resources }
 
-    return {'endpoints': ep_doc,
+    return {'endpoints': ep_doc_filtered,
             'resources': res_doc}
 
 
