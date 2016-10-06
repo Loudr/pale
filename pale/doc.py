@@ -759,26 +759,20 @@ def generate_raml_resources(module, api_root, user):
             admin_user = user!= None and user.is_admin != None and user.is_admin
 
             for branch in subtree:
-                # if the user is admin:
-                if admin_user:
-                    # write the branch name
-                    output.write(indent + "/" + branch + ":\n")
-                    # and continue printing the endpoints
-                    print_resource_tree(subtree[branch], output, indent, user, level=level+1)
 
-                # endpoint_is_private = subtree[branch].get("endpoint") != None and subtree[branch]["endpoint"].get("requires_permission") != None
-                endpoint_is_private = True
-                # has_public_children = check_children_for_public_endpoints(subtree[branch])["public"]
-                has_public_children = True
+                has_public_children = check_children_for_public_endpoints(subtree[branch]).get("public") == True
 
-                endpoint_qualifies = endpoint_is_private and has_public_children
+                is_public_endpoint = subtree[branch].get("endpoint") != None \
+                    and subtree[branch]["endpoint"].get("requires_permission") == None
 
-                # or if user is not admin, and this endpoint is private, and it has public children:
-                elif True: # @TODO where is the syntax error?
+                # @TODO - make this permission more granular if necessary
+                # if the user is admin or this endpoint is pubic or has public children:
+                if admin_user or has_public_children or is_public_endpoint:
                     # write branch name
                     output.write(indent + "/" + branch + ":\n")
                     # and continue printing the endpoints
                     print_resource_tree(subtree[branch], output, indent, user, level=level+1)
+
 
 
     output = StringIO()
