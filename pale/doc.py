@@ -603,21 +603,6 @@ def generate_raml_resources(module, api_root, user):
         "ListArgument": "array"
     }
 
-    def check_subtree_for_permissions(subtree, api_root, private_endpoints={}):
-        """Recursively check a subtree to see if any of its children require permissions.
-        Returns a map of private endpoints, where the key is the endpoint's URI and the
-        value is a dict with a requires_permission property equal to the permission required."""
-
-        if subtree.get("path") != None and len(subtree["path"]) > 0:
-            path = subtree["path"]
-            for branch in path:
-                if path[branch].get("endpoint") != None and path[branch]["endpoint"].get("requires_permission") != None \
-                and branch != api_root:
-                    private_endpoints[branch] = {}
-                    private_endpoints[branch]["requires_permission"] = path[branch]["endpoint"]["requires_permission"]
-                check_subtree_for_permissions(path[branch], private_endpoints)
-
-        return private_endpoints
 
     def check_children_for_public_endpoints(subtree):
         """Recursively check a subtree to see if any of its children require permissions.

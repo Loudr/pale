@@ -9,6 +9,12 @@ from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
 
+class User(object):
+    def __init__(self):
+        self.is_admin = True
+
+test_user = User()
+
 class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
@@ -16,7 +22,7 @@ class PaleDocTests(unittest.TestCase):
         from pale import fields
         self.example_app = example_pale_app
         self.example_fields = fields
-        self.doc_dict = generate_doc_dict(self.example_app)
+        self.doc_dict = generate_doc_dict(self.example_app, test_user)
 
 
     def test_doc_dict_root_structure(self):
@@ -28,7 +34,7 @@ class PaleDocTests(unittest.TestCase):
 
 
     def test_doc_json(self):
-        json_docs = generate_json_docs(self.example_app)
+        json_docs = generate_json_docs(self.example_app, pretty_print=False, user=test_user)
 
         # use yaml's safe_load here, because it returns strings instead
         # of unicode, and we know that our test data doesn't have any
@@ -204,7 +210,7 @@ class PaleDocTests(unittest.TestCase):
         from pale import extract_endpoints, extract_resources, is_pale_module
         raml_resources = extract_endpoints(self.example_app)
         raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
-        test_tree = generate_raml_tree(raml_resource_doc_flat, version="")
+        test_tree = generate_raml_tree(raml_resource_doc_flat, api_root="api")
 
         # check if the tree is parsing the URIs correctly
         self.assertTrue(test_tree.get("path") != None)
