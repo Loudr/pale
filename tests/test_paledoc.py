@@ -258,6 +258,8 @@ class PaleDocTests(unittest.TestCase):
                 """Does not contain the machine code version of string formatting, like
                 '<pale.fields.string.StringField object at 0x1132bd2d0>'
                 for example""")
+        self.assertTrue("default: False" not in test_resources_admin,
+                "Converts upper-cased Booleans to lower-cased Booleans")
 
         test_resources_public = generate_raml_resources(self.example_app, "", test_public_user)
         test_restricted_resource = "Include the time in the output?"

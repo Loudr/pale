@@ -673,7 +673,10 @@ def generate_raml_resources(module, api_root, user):
                                 if this_arg_detail != None:
 
                                     if arg_detail == "default":
-                                        output.write(indent + arg_detail + ": " + str(this_arg_detail) + "\n")
+                                        default = str(this_arg_detail)
+                                        if default == "True" or default == "False":
+                                            default = default.lower()
+                                        output.write(indent + arg_detail + ": " + default + "\n")
                                     elif arg_detail == "description":
                                         output.write(indent + "description: " + this_arg_detail + "\n")
                                     elif arg_detail == "type":
