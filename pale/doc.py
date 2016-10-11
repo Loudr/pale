@@ -119,7 +119,14 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write('baseUri: ' + base_uri + ' \n')
     output.write('version: ' + version + '\n')
     output.write('mediaType: application/json\n\n')
-    output.write("###############\n# Resource Types:\n###############\n\n")
+    output.write('documentation:\n')
+    output.write('  - title: Welcome\n')
+    output.write('    content: |\n')
+    output.write("""\
+        Welcome to the Loudr API Docs.\n
+        You'll find comprehensive documentation on our endpoints and resources here.
+        """)
+    output.write("\n###############\n# Resource Types:\n###############\n\n")
     output.write('types:\n')
 
     basic_fields = []
