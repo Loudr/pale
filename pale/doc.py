@@ -102,7 +102,7 @@ def generate_json_docs(module, pretty_print=False, user=None):
     return json_str
 
 
-def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", api_root="api", base_uri="http://mysite.com/{apiRoot}/{version}"):
+def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", api_root="api", base_uri="http://mysite.com/{version}"):
     """Return a RAML file of a Pale module's documentation as a string.
 
     The user argument is optional. If included, it expects the user to be an object with an "is_admin"
@@ -118,11 +118,7 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write('title: ' + title + ' \n')
     output.write('baseUri: ' + base_uri + ' \n')
     output.write('version: ' + version + '\n')
-    output.write('apiRoot: ' + api_root + '\n')
-    output.write('mediaType: application/json\n')
-    output.write('baseUriParameters:\n')
-    output.write('  apiRoot:\n')
-    output.write('    description: Root directory of this API\n\n')
+    output.write('mediaType: application/json\n\n')
     output.write("###############\n# Resource Types:\n###############\n\n")
     output.write('types:\n')
 
