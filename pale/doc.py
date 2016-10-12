@@ -59,14 +59,16 @@ def clean_description(string):
     newlines = re.compile(r"\n")
     colons = re.compile(r":(?!//)")
     machine_code = re.compile(r"(<.+>)")
-    punctuation = re.compile(r"[\.!?,]")
+    trailing_whitespace = re.compile(r"(\s+\Z)")
+    punctuation = re.compile(r"([\.!?,])\s*\Z")
 
     result = leading_whitespace.sub("", string, 0)
     result = newlines.sub(" ", result, 0)
     result = colons.sub('=', result, 0)
     result = machine_code.sub("", result, 0)
     result = multiple_spaces.sub(" ", result, 0)
-    has_punctuation = punctuation.search(result[-1:]) != None
+    result = trailing_whitespace.sub("", result, 0)
+    has_punctuation = punctuation.search(result) != None
 
     if not has_punctuation and result != "":
         result = result + "."

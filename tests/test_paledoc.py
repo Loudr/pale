@@ -162,6 +162,8 @@ class PaleDocTests(unittest.TestCase):
         test_empty_string = clean_description("")
         self.assertEquals(test_empty_string, "",
             "Leaves empty strings as they are.")
+        test_trailing_whitespace = clean_description("Is this the end?    ")
+        self.assertEquals(test_trailing_whitespace, "Is this the end?")
 
 
     def test_resource_doc(self):
