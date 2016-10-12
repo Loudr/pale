@@ -9,6 +9,12 @@ from pale.doc import generate_doc_dict, generate_json_docs, generate_basic_type_
 COUNT_ENDPOINTS = 9
 """Number of endpoints we expect to find in example_app."""
 
+class User(object):
+    def __init__(self):
+        self.is_admin = True
+
+test_user = User()
+
 class PaleDocTests(unittest.TestCase):
     def setUp(self):
         super(PaleDocTests, self).setUp()
@@ -16,7 +22,7 @@ class PaleDocTests(unittest.TestCase):
         from pale import fields
         self.example_app = example_pale_app
         self.example_fields = fields
-        self.doc_dict = generate_doc_dict(self.example_app)
+        self.doc_dict = generate_doc_dict(self.example_app, test_user)
 
 
     def test_doc_dict_root_structure(self):
@@ -28,7 +34,7 @@ class PaleDocTests(unittest.TestCase):
 
 
     def test_doc_json(self):
-        json_docs = generate_json_docs(self.example_app)
+        json_docs = generate_json_docs(self.example_app, pretty_print=False, user=test_user)
 
         # use yaml's safe_load here, because it returns strings instead
         # of unicode, and we know that our test data doesn't have any
@@ -86,7 +92,7 @@ class PaleDocTests(unittest.TestCase):
         # the year argument
         year_arg = args['year']
         self.assertEqual(year_arg['description'],
-                "Set the year of the returned datetime")
+                "Set the year of the returned datetime.")
         self.assertFalse('detailed_description' in year_arg)
         self.assertEqual(year_arg['type'], 'IntegerArgument')
         self.assertEqual(year_arg['default'], 2015)
@@ -95,7 +101,7 @@ class PaleDocTests(unittest.TestCase):
         # month, which has min and max values
         month_arg = args['month']
         self.assertEqual(month_arg['description'],
-                "Set the month of the returned datetime")
+                "Set the month of the returned datetime.")
         self.assertFalse('detailed_description' in month_arg)
         self.assertEqual(month_arg['type'], 'IntegerArgument')
         self.assertEqual(month_arg['default'], None)
@@ -106,7 +112,7 @@ class PaleDocTests(unittest.TestCase):
         # day, which is barebones
         day_arg = args['day']
         self.assertEqual(day_arg['description'],
-                "Set the day of the returned datetime")
+                "Set the day of the returned datetime.")
         self.assertFalse('detailed_description' in day_arg)
         self.assertEqual(day_arg['type'], 'IntegerArgument')
         self.assertEqual(day_arg['default'], None)
@@ -115,7 +121,7 @@ class PaleDocTests(unittest.TestCase):
         # name arg
         name_arg = args['name']
         self.assertEqual(name_arg['description'],
-                "The name for your datetime")
+                "The name for your datetime.")
         self.assertEqual(name_arg['detailed_description'],
                 "You can give your time a name, which will be returned back to you in the response, as the field `name`. If you omit this input parameter, your response won't include a `name`.")
         self.assertEqual(name_arg['type'], 'StringArgument')
@@ -153,6 +159,11 @@ class PaleDocTests(unittest.TestCase):
         self.assertEquals(test_machine_code, "(with code in it).")
         test_punctuation = clean_description("hanging")
         self.assertEquals(test_punctuation, "hanging.")
+        test_empty_string = clean_description("")
+        self.assertEquals(test_empty_string, "",
+            "Leaves empty strings as they are.")
+        test_trailing_whitespace = clean_description("Is this the end?    ")
+        self.assertEquals(test_trailing_whitespace, "Is this the end?")
 
 
     def test_resource_doc(self):
@@ -168,7 +179,7 @@ class PaleDocTests(unittest.TestCase):
         resource = resources['DateTime Range Resource']
         self.assertEqual(resource['name'], 'DateTime Range Resource')
         self.assertEqual(resource['description'],
-                'A time range that returns some nested resources')
+                'A time range that returns some nested resources.')
 
 
     def test_generate_basic_type_docs(self):
@@ -201,7 +212,7 @@ class PaleDocTests(unittest.TestCase):
         from pale import extract_endpoints, extract_resources, is_pale_module
         raml_resources = extract_endpoints(self.example_app)
         raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
-        test_tree = generate_raml_tree(raml_resource_doc_flat, version="")
+        test_tree = generate_raml_tree(raml_resource_doc_flat, api_root="api")
 
         # check if the tree is parsing the URIs correctly
         self.assertTrue(test_tree.get("path") != None)
@@ -249,6 +260,8 @@ class PaleDocTests(unittest.TestCase):
                 """Does not contain the machine code version of string formatting, like
                 '<pale.fields.string.StringField object at 0x1132bd2d0>'
                 for example""")
+        self.assertTrue("default: False" not in test_resources_admin,
+                "Converts upper-cased Booleans to lower-cased Booleans")
 
         test_resources_public = generate_raml_resources(self.example_app, "", test_public_user)
         test_restricted_resource = "Include the time in the output?"

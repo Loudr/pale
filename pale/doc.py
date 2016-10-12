@@ -29,7 +29,7 @@ def run_pale_doc():
     except Exception as e:
         print e
         return
-    json_docs = generate_json_docs(pale_module, args.pretty)
+    json_docs = generate_json_docs(pale_module, args.pretty, user=None)
     if args.print_newlines:
         json_docs = json_docs.replace('\\n', '\n')
     print json_docs
@@ -59,16 +59,18 @@ def clean_description(string):
     newlines = re.compile(r"\n")
     colons = re.compile(r":(?!//)")
     machine_code = re.compile(r"(<.+>)")
-    punctuation = re.compile(r"[\.!?,]")
+    trailing_whitespace = re.compile(r"(\s+\Z)")
+    punctuation = re.compile(r"([\.!?,])\s*\Z")
 
     result = leading_whitespace.sub("", string, 0)
     result = newlines.sub(" ", result, 0)
     result = colons.sub('=', result, 0)
     result = machine_code.sub("", result, 0)
     result = multiple_spaces.sub(" ", result, 0)
-    has_punctuation = punctuation.search(result[-1:]) != None
+    result = trailing_whitespace.sub("", result, 0)
+    has_punctuation = punctuation.search(result) != None
 
-    if not has_punctuation:
+    if not has_punctuation and result != "":
         result = result + "."
     else:
         result = result
@@ -76,7 +78,7 @@ def clean_description(string):
     return result
 
 
-def generate_json_docs(module, pretty_print=False):
+def generate_json_docs(module, pretty_print=False, user=None):
     """Return a JSON string format of a Pale module's documentation.
 
     This string can either be printed out, written to a file, or piped to some
@@ -84,6 +86,10 @@ def generate_json_docs(module, pretty_print=False):
 
     This method is a shorthand for calling `generate_doc_dict` and passing
     it into a json serializer.
+
+    The user argument is optional. If included, it expects the user to be an object with an "is_admin"
+    boolean attribute. Any endpoint protected with a "@requires_permission" decorator will require
+    user.is_admin == True to display documentation on that endpoint.
     """
     indent = None
     separators = (',', ':')
@@ -91,14 +97,14 @@ def generate_json_docs(module, pretty_print=False):
         indent = 4
         separators = (',', ': ')
 
-    module_doc_dict = generate_doc_dict(module)
+    module_doc_dict = generate_doc_dict(module, user)
     json_str = json.dumps(module_doc_dict,
             indent=indent,
             separators=separators)
     return json_str
 
 
-def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", base_uri="http://mysite.com/{version}"):
+def generate_raml_docs(module, fields, shared_types, user=None, title="My API", version="v1", api_root="api", base_uri="http://mysite.com/{version}"):
     """Return a RAML file of a Pale module's documentation as a string.
 
     The user argument is optional. If included, it expects the user to be an object with an "is_admin"
@@ -115,8 +121,14 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write('baseUri: ' + base_uri + ' \n')
     output.write('version: ' + version + '\n')
     output.write('mediaType: application/json\n\n')
-
-    output.write("###############\n# Resource Types:\n###############\n\n")
+    output.write('documentation:\n')
+    output.write('  - title: Welcome\n')
+    output.write('    content: |\n')
+    output.write("""\
+        Welcome to the Loudr API Docs.\n
+        You'll find comprehensive documentation on our endpoints and resources here.
+        """)
+    output.write("\n###############\n# Resource Types:\n###############\n\n")
     output.write('types:\n')
 
     basic_fields = []
@@ -147,7 +159,7 @@ def generate_raml_docs(module, fields, shared_types, user=None, title="My API", 
     output.write("\n# API Resource Types:\n\n")
     output.write(raml_resource_types)
 
-    raml_resources = generate_raml_resources(module, version, user)
+    raml_resources = generate_raml_resources(module, api_root, user)
     output.write("\n\n###############\n# API Endpoints:\n###############\n\n")
     output.write(raml_resources)
 
@@ -453,7 +465,7 @@ def generate_raml_resource_types(module):
 
 
 
-def generate_raml_tree(flat_resources, version):
+def generate_raml_tree(flat_resources, api_root):
     """Generate a dict of OrderedDicts, using the URIs of the Pale endpoints as the structure for the tree.
     Each level of the tree will contain a "path" property and an "endpoint" property.
     The "path" will contain further nested endpoints, sorted alphabetically.
@@ -538,7 +550,7 @@ def generate_raml_tree(flat_resources, version):
             # leftmost element in list is root of path
             for match in uri_matches:
                 for directory in match:
-                    if directory != "" and directory != version:
+                    if directory != "" and directory != api_root:
                         branch = directory
                         matched_group = re.search('([\w+/]?[<:!\?\+\(\.\*\)>\w]+>)', directory)
                         if matched_group:
@@ -558,7 +570,10 @@ def generate_raml_tree(flat_resources, version):
     return resource_tree
 
 
-def generate_raml_resources(module, version, user):
+
+
+
+def generate_raml_resources(module, api_root, user):
     """Compile a Pale module's endpoint documentation into RAML format.
 
     RAML calls Pale endpoints 'resources'. This function converts Pale
@@ -577,7 +592,7 @@ def generate_raml_resources(module, version, user):
 
     raml_resources = extract_endpoints(module)
     raml_resource_doc_flat = { ep._route_name: document_endpoint(ep) for ep in raml_resources }
-    raml_resource_doc_tree = generate_raml_tree(raml_resource_doc_flat, version)
+    raml_resource_doc_tree = generate_raml_tree(raml_resource_doc_flat, api_root)
 
     # @TODO generate this dynamically
     pale_argument_type_map = {
@@ -592,6 +607,29 @@ def generate_raml_resources(module, version, user):
         "StringChoiceArgument": "string",
         "ListArgument": "array"
     }
+
+
+    def check_children_for_public_endpoints(subtree):
+        """Recursively check a subtree to see if any of its children require permissions.
+        Returns an object with property "public" set to True
+        if there are children that do not require permissions, false if not."""
+
+        found_children = {}
+        found_children["public"] = False
+
+        def subroutine(subtree, found_children):
+            if subtree.get("path") != None and len(subtree["path"]) > 0:
+                path = subtree["path"]
+                for branch in path:
+                    if path[branch].get("endpoint") != None and path[branch]["endpoint"].get("requires_permission") == None:
+                        found_children["public"] = True
+                    else:
+                        subroutine(path[branch], found_children)
+
+        subroutine(subtree, found_children)
+
+        return found_children
+
 
     def print_resource_tree(tree, output, indent, user, level=0):
         """Walk the tree and add the endpoint documentation to the output buffer.
@@ -610,9 +648,6 @@ def generate_raml_resources(module, version, user):
             # @TODO - make this permission more granular if necessary
             if this_endpoint.get("requires_permission") != None and user != None and user.is_admin or \
                 this_endpoint.get("requires_permission") == None:
-
-                print 'this endpoint requires permission = %r' % this_endpoint.get("requires_permission")
-                print 'this user is admin: %r' % user.is_admin
 
                 indent += "  "
                 # add the HTTP method
@@ -643,7 +678,10 @@ def generate_raml_resources(module, version, user):
                                 if this_arg_detail != None:
 
                                     if arg_detail == "default":
-                                        output.write(indent + arg_detail + ": " + str(this_arg_detail) + "\n")
+                                        default = str(this_arg_detail)
+                                        if default == "True" or default == "False":
+                                            default = default.lower()
+                                        output.write(indent + arg_detail + ": " + default + "\n")
                                     elif arg_detail == "description":
                                         output.write(indent + "description: " + this_arg_detail + "\n")
                                     elif arg_detail == "type":
@@ -701,19 +739,38 @@ def generate_raml_resources(module, version, user):
 
                     indent = indent [:-2]   # reset indent after endpoint
 
+
         # check for further branches and recurse on them
         if tree.get("path") != None and len(tree["path"]) > 0:
             # only increase the indent if we are not on root level
             if level > 0:
                 # set the base indentation per the level we are at in the tree
                 indent = level * "  "
-            for branch in tree["path"]:
-                output.write(indent + "/" + branch + ":\n")
-                print_resource_tree(tree["path"][branch], output, indent, user, level=level+1)
+
+            subtree = tree["path"]
+
+            admin_user = user!= None and user.is_admin != None and user.is_admin
+
+            for branch in subtree:
+
+                has_public_children = check_children_for_public_endpoints(subtree[branch]).get("public") == True
+
+                is_public_endpoint = subtree[branch].get("endpoint") != None \
+                    and subtree[branch]["endpoint"].get("requires_permission") == None
+
+                # @TODO - make this permission more granular if necessary
+                # if the user is admin or this endpoint is pubic or has public children:
+                if admin_user or has_public_children or is_public_endpoint:
+                    # write branch name
+                    output.write(indent + "/" + branch + ":\n")
+                    # and continue printing the endpoints
+                    print_resource_tree(subtree[branch], output, indent, user, level=level+1)
+
 
 
     output = StringIO()
     indent = ""
+
     print_resource_tree(raml_resource_doc_tree, output, indent, user)
     raml_resources = output.getvalue()
     output.close()
@@ -721,7 +778,7 @@ def generate_raml_resources(module, version, user):
 
 
 
-def generate_doc_dict(module):
+def generate_doc_dict(module, user):
     """Compile a Pale module's documentation into a python dictionary.
 
     The returned dictionary is suitable to be rendered by a JSON formatter,
@@ -738,17 +795,29 @@ def generate_doc_dict(module):
     ep_doc = { ep._route_name: document_endpoint(ep) for ep \
             in module_endpoints }
 
+    ep_doc_filtered = {}
+
+    for endpoint in ep_doc:
+        # check if user has permission to view this endpoint
+        # this is currently an on/off switch: if any endpoint has a "@requires_permission"
+        # decorator, user.is_admin must be True for the user to see documentation
+        # @TODO - make this permission more granular if necessary
+
+        if ep_doc[endpoint].get("requires_permission") != None and user != None and user.is_admin or \
+            ep_doc[endpoint].get("requires_permission") == None:
+            ep_doc_filtered[endpoint] = ep_doc[endpoint]
+
     module_resources = extract_resources(module)
     res_doc = { r._value_type: document_resource(r) for r \
             in module_resources }
 
-    return {'endpoints': ep_doc,
+    return {'endpoints': ep_doc_filtered,
             'resources': res_doc}
 
 
 def document_endpoint(endpoint):
     """Extract the full documentation dictionary from the endpoint."""
-    descr = py_doc_trim(endpoint.__doc__)
+    descr = clean_description(py_doc_trim(endpoint.__doc__))
     docs = {
         'name': endpoint._route_name,
         'http_method': endpoint._http_method,
@@ -781,17 +850,17 @@ def format_endpoint_argument_doc(argument):
     doc = argument.doc_dict()
 
     # Trim the strings a bit
-    doc['description'] = py_doc_trim(doc['description'])
+    doc['description'] = clean_description(py_doc_trim(doc['description']))
     details = doc.get('detailed_description', None)
     if details is not None:
-        doc['detailed_description'] = py_doc_trim(details)
+        doc['detailed_description'] = clean_description(py_doc_trim(details))
 
     return doc
 
 
 def format_endpoint_returns_doc(endpoint):
     """Return documentation about the resource that an endpoint returns."""
-    description = py_doc_trim(endpoint._returns._description)
+    description = clean_description(py_doc_trim(endpoint._returns._description))
     return {
         'description': description,
         'resource_name': endpoint._returns._value_type,
@@ -800,12 +869,20 @@ def format_endpoint_returns_doc(endpoint):
 
 
 def document_resource(resource):
-    field_doc = { name: field.doc_dict() for name, field \
-            in resource._fields.iteritems() }
+
+    field_doc = {}
+
+    for name, field in resource._fields.iteritems():
+        doc_dict = field.doc_dict()
+        if doc_dict.get("description") != None:
+            doc_dict["description"] = clean_description(doc_dict["description"])
+        if doc_dict.get("extended_description") != None:
+            doc_dict["extended_description"] = clean_description(doc_dict["extended_description"])
+        field_doc[name] = doc_dict
 
     res_doc = {
         'name': resource._value_type,
-        'description': py_doc_trim(resource.__doc__),
+        'description': clean_description(py_doc_trim(resource.__doc__)),
         'fields': field_doc,
         'default_fields': None,
     }
