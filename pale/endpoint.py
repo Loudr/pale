@@ -382,7 +382,8 @@ class Endpoint(object):
         else:
             del self._context.response.content_type
             del self._context.response.content_length
-            if self._context.response.status_code == 200: # 200 OK
+            status_code = getattr(self._context.response, "status_int", None) orself._context.response.status_code
+            if status_code == 200: # 200 OK
                 self._context.response.status = '204 No Content'
 
 class ResourcePatch(object):
