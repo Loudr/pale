@@ -167,6 +167,9 @@ class JsonDictArgument(BaseArgument):
 
         self._validate_type(item, item_name)
 
+        if item is None:
+            return item
+
         item_keys = item.keys()
         field_keys = self.field_map.keys()
         extra_keys = [ k for k in item_keys if k not in field_keys ]
