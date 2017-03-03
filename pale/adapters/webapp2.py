@@ -25,6 +25,13 @@ def pale_webapp2_request_handler_generator(pale_endpoint):
     for each pale endpoint.
     """
     def pale_handler(self, *args, **kwargs):
+        if self.request.method == "OPTIONS":
+            origin = self.request.headers.get("Origin", None)
+            self.response.headers['Access-Control-Allow-Origin'] = origin
+            self.response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
+            self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
+            self.response.headers['Access-Control-Allow-Credentials'] = 'true'
+            return self.response
         return pale_endpoint._execute(self.request)
     cls = type(pale_endpoint._route_name,
             (webapp2.RequestHandler,),
@@ -68,7 +75,7 @@ def bind_pale_to_webapp2(pale_app_module,
                 handler=req_handler,
                 name=name,
                 handler_method='pale_handler',
-                methods=[method])
+                methods=[method, "OPTIONS"])
         webapp_wsgiapplication.router.add(route)
 
 
