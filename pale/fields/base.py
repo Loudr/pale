@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import types
 
 class BaseField(object):
@@ -64,6 +65,10 @@ class BaseField(object):
         propagated to the `_render_serializable` method of nested
         resources (or, for example, if you decide to implement attribute
         hiding at the field level instead of at the object level).
+
+        Callable attributes of `obj` will be called to fetch value.
+        This is useful for fields computed from lambda functions
+        or instance methods.
         """
         if self.value_lambda is not None:
             val = self.value_lambda(obj)
@@ -75,6 +80,15 @@ class BaseField(object):
                 val = obj.get(attr_name, None)
             else:
                 val = getattr(obj, attr_name, None)
+
+        if callable(val):
+            try:
+                val = val()
+            except:
+                logging.exception("Attempted to call `%s` on obj of type %s.",
+                    attr_name, type(obj))
+                raise
+
         return val
 
 
