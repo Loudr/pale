@@ -23,9 +23,7 @@ class DecimalField(BaseField):
 
     def __init__(self, description, **kwargs):
         quantize = kwargs.pop('quantize', None)
-        if quantize:
-            self.quantize = Decimal(quantize)
-
+        self.quantize = Decimal(quantize) if quantize else None
         self.prefix = kwargs.pop('prefix', None) or ''
 
         super(DecimalField, self).__init__(
