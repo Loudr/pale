@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import unittest
+from collections import namedtuple
+from decimal import Decimal
 
 from pale import Resource
 from pale.fields import (BaseField, IntegerField, ListField, ResourceField,
-        ResourceListField, StringField)
+        ResourceListField, StringField, DecimalField)
 
 from tests.example_app.api.resources import DateTimeResource
 
@@ -84,6 +86,39 @@ class FieldsTests(unittest.TestCase):
         self.assertIsNone(doc["extended_description"])
 
 
+    def test_decimal_field(self):
+        field = DecimalField("Dollar amount rounded to nearest penny",
+            quantize='.01',
+            prefix='$')
+
+        self.assertEqual(field.value_type, "decimal")
+        self.assertEqual(field.description,
+                "Dollar amount rounded to nearest penny")
+        self.assertEqual(field.prefix, "$")
+        self.assertEqual(field.quantize, Decimal(".01"))
+
+        Object = namedtuple('obj', 'amount')
+
+        obj = Object(amount=25.77)
+        val = field.render(obj, 'amount', context=None)
+        self.assertEqual(val, '$25.77')
+
+        obj = Object(amount="25.77")
+        val = field.render(obj, 'amount', context=None)
+        self.assertEqual(val, '$25.77')
+
+        obj = Object(amount="25.779")
+        val = field.render(obj, 'amount', context=None)
+        self.assertEqual(val, '$25.78')
+
+        obj = Object(amount="25.772")
+        val = field.render(obj, 'amount', context=None)
+        self.assertEqual(val, '$25.77')
+
+        obj = Object(amount=None)
+        val = field.render(obj, 'amount', context=None)
+        self.assertIsNone(val)
+
     def test_list_field_with_no_item_type(self):
         list_no_item_type = ListField("This is a test list field",
                 details="You might add information about the list here.")
@@ -117,7 +152,6 @@ class FieldsTests(unittest.TestCase):
 
     def test_resource_field(self):
         """Test ResourceField creation and documentation
-        
         A resource field is the primary way to nest objects.
 
         At a high level, a Resource is basically just a format and

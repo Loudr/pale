@@ -1,6 +1,7 @@
 from .base import BaseField, ListField
 from .boolean import BooleanField
 from .integer import IntegerField
+from .decimal_field import DecimalField
 from .links import RelativeLinksField
 from .resource import ResourceField, ResourceListField
 from .scope import ScopeField
