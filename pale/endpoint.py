@@ -223,8 +223,11 @@ class Endpoint(object):
             response = self._response_class(*r.response)
             response.headers["Content-Type"] = 'application/json'
         except Exception as e:
-            logging.exception(e)
-            raise
+            logging.exception("Failed to handle Pale Endpoint %s: %r", self.__class__.__name__,
+                e)
+            err = APIError.Exception(repr(e))
+            response = self._response_class(*err.response)
+            response.headers["Content-Type"] = 'application/json'
 
         allow_cors = getattr(self, "_allow_cors", None)
         if allow_cors is True:
@@ -239,8 +242,8 @@ class Endpoint(object):
                     handler(self._context, response)
         except Exception as e:
             logging.exception(
-                "Failed to process _after_response_handlers for Endpoint %s"
-                % self.__class__.__name__)
+                "Failed to process _after_response_handlers for Endpoint %s",
+                self.__class__.__name__)
             raise
 
         return response

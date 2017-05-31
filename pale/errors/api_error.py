@@ -30,3 +30,9 @@ class APIError(BasePaleError):
         err = cls(message)
         err.http_status_code = 400
         return err
+
+    @classmethod
+    def Exception(cls, message):
+        err = cls(message)
+        err.http_status_code = 500
+        return err
