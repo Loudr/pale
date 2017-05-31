@@ -1,3 +1,4 @@
+import logging
 import flask
 
 from pale.adapters import flask as pale_flask_adapter
@@ -5,14 +6,15 @@ from pale.config import authenticator, context_creator
 
 from tests.example_app import api
 
-
 @authenticator
 def authenticate_pale_context(context):
     """Don't actually authenticate anything in this test."""
+    logging.debug("pale.example_app: authenticate_pale_context")
     return context
 
 @context_creator
 def create_pale_context(endpoint,request):
+    logging.debug("pale.example_app: create_pale_context")
     return pale_flask_adapter.DefaultFlaskContext(endpoint, request)
 
 
