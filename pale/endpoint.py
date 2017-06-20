@@ -3,6 +3,7 @@ import datetime
 import json
 import logging
 import sys
+import threading
 
 import arrow
 from pale import config as pale_config
@@ -13,6 +14,15 @@ from pale.meta import MetaHasFields
 from pale.resource import NoContentResource, Resource, DebugResource
 from pale.response import PaleRaisedResponse
 
+_tls = threading.local()
+def get_current_context():
+    """Return the context associated with the current request."""
+    return _tls.current_context
+
+def set_current_context(context):
+    """Set the context associated with the current request."""
+    _tls.current_context = context
+
 
 class PaleDefaultJSONEncoder(json.JSONEncoder):
     """The default JSON Encoder for Pale.
@@ -22,7 +32,9 @@ class PaleDefaultJSONEncoder(json.JSONEncoder):
     and tries to call a `to_dict` method on the passed in object before
     giving up.
     """
+
     def default(self, obj):
+        """Default JSON encoding."""
         try:
             if isinstance(obj, datetime.datetime):
                 # do the datetime thing,  or
@@ -40,7 +52,10 @@ class PaleDefaultJSONEncoder(json.JSONEncoder):
         return encoded
 
 
+
 class Endpoint(object):
+    """Base-class for implemented Endpoints."""
+
     __metaclass__ = MetaHasFields
 
     _response_class = None
@@ -56,7 +71,7 @@ class Endpoint(object):
         This method will get called on class declaration because of
         Endpoint's metaclass.  The functionality is based on Google's NDB
         implementation."""
-        cls._arguments = {}
+        cls._arguments = dict()
         if cls.__module__ == __name__: # skip the classes in this file
             return
         for name in set(dir(cls)):
@@ -73,9 +88,12 @@ class Endpoint(object):
 
 
     def _set_response_class(self, response_class):
-        """Sets the response class for this endpoint.  This is usually only
-        called by the Pale adapter, and intended to be called with the Response
-        object of the HTTP layer that you're using."""
+        """Set the response class for this endpoint.
+
+        This is usually only called by the Pale adapter,
+        and intended to be called with the Response object
+        of the HTTP layer that you're using.
+        """
         self._response_class = response_class
 
 
@@ -90,18 +108,23 @@ class Endpoint(object):
 
 
     def _handle(self, context):
-        """The meat of the API logic.  This method is intended to be overridden
-        by subclasses, and should perform the core logic of the API method in
-        question.
+        """The meat of the API logic.
+
+        This method is intended to be overridden by subclasses,
+        and should perform the core logic of the API method in question.
         """
         pass
 
+    def _finally(self):
+        """Executed after the success, or failure, of _execute()."""
+        pass
 
     def _execute(self, request, **kwargs):
-        """The top-level execute function for the endpoint.  This method is
-        intended to remain as-is, and not be overridden.  It gets called by
-        your HTTP framework's route handler, and performs the following actions
-        to process the request:
+        """The top-level execute function for the endpoint.
+
+        This method is intended to remain as-is, and not be overridden.
+        It gets called by your HTTP framework's route handler, and performs
+        the following actions to process the request:
 
         ``authenticate_request``
             Validate the Bearer token, populate the ``current_user``, and make
@@ -186,22 +209,24 @@ class Endpoint(object):
             self._create_context(request)
             self._authenticate()
 
+            context = get_current_context()
+
             self._parse_args()
 
             if hasattr(self, '_before_handlers') and \
                     isinstance(self._before_handlers, (list, tuple)):
                 for handler in self._before_handlers:
-                    handler(self._context)
+                    handler(context)
 
-            self._context.handler_result = self._handle(self._context)
+            context.handler_result = self._handle(context)
 
             if hasattr(self, '_after_handlers') and \
                     isinstance(self._after_handlers, (list, tuple)):
                 for handler in self._after_handlers:
-                    handler(self._context)
+                    handler(context)
 
             self._render()
-            response = self._context.response
+            response = context.response
             # After calling ._render(), the response is ready to go, so we
             # shouldn't need to handle any other exceptions beyond this point.
         except AuthenticationError as e:
@@ -235,11 +260,13 @@ class Endpoint(object):
         elif isinstance(allow_cors, basestring):
             response.headers['Access-Control-Allow-Origin'] = allow_cors
 
+        context.response = response
+
         try:
             if hasattr(self, '_after_response_handlers') and \
                     isinstance(self._after_response_handlers, (list, tuple)):
                 for handler in self._after_response_handlers:
-                    handler(self._context, response)
+                    handler(context, response)
         except Exception as e:
             logging.exception(
                 "Failed to process _after_response_handlers for Endpoint %s",
@@ -254,7 +281,9 @@ class Endpoint(object):
             raise ValueError((
                     "\n\nPale does not appear to be configured, as there is no "
                     "context creator currently set!\n\n"))
-        self._context = pale_config.create_context(self, request)
+
+        context = pale_config.create_context(self, request)
+        set_current_context(context)
 
 
     def _authenticate(self):
@@ -262,23 +291,26 @@ class Endpoint(object):
             raise ValueError((
                     "\n\nPale does not appear to be configured, as there is no "
                     "context authenticator currently set!\n\n"))
-        pale_config.authenticate_context(self._context)
+        pale_config.authenticate_context(get_current_context())
+
 
 
     def _patch_args(self):
         # do something like:
-        # version = self._context.api_version
+        # version = context.api_version
         # coersion_dict = self.grab_version_coersion_info_from_impl(version)
         # self.patched_args = self.coerce(self._raw_args, coersion_dict)
 
         # but for now, just push the raw args through
-        self._context.patched_args = self._context._raw_args
+        context = get_current_context()
+        context.patched_args = context._raw_args
 
 
     def _parse_args(self):
+        context = get_current_context()
         self._patch_args()
 
-        parsed_args = {}
+        parsed_args = dict()
         if self._arguments is not None:
             if not isinstance(self._arguments, dict):
                 raise ValueError("""Your API implementation is broken.  This
@@ -287,7 +319,7 @@ class Endpoint(object):
                 how to fix the problem.""" % (type(self.arguments), ))
 
             for arg_name, arg_obj in self._arguments.iteritems():
-                patched_value = self._context.patched_args.get(arg_name, None)
+                patched_value = context.patched_args.get(arg_name, None)
 
                 # HTTP libraries are crap, so we expect `patched_value` to
                 # be a list, which we strip out if the length is 1 and if the
@@ -303,7 +335,7 @@ class Endpoint(object):
                 validated_value = arg_obj.validate(patched_value, arg_name)
                 if validated_value is not None:
                     parsed_args[arg_name] = validated_value
-        self._context.args = parsed_args
+        context.args = parsed_args
 
 
     def _parse_handler_result(self, result):
@@ -327,28 +359,29 @@ class Endpoint(object):
 
     def _render(self):
         # first, serialize the Python objects in the response_dict into a dict
-        rendered_content = {}
+        context = get_current_context()
+        rendered_content = dict()
 
         unrendered_content, response_init_list = self._parse_handler_result(
-                self._context.handler_result)
+                context.handler_result)
 
         if hasattr(unrendered_content, 'iteritems'):
             for k, v in unrendered_content.iteritems():
                 # usually there should only be one key and value here
-                dict_val = self._returns._render_serializable(v, self._context)
+                dict_val = self._returns._render_serializable(v, context)
 
                 # this is where object versioning should be implemented, but
                 # one outstanding question with it is, should this be the
                 # responsibility of the Resource object, or of the endpoint?
 
                 # coerced_dict_val = self.returns.versionify(dict_val,
-                #        self._context.api_version)
+                #        context.api_version)
 
                 rendered_content[k] = dict_val
         else:
             # maybe it's a nonetype or a simple string?
             rendered_content = self._returns._render_serializable(
-                    unrendered_content, self._context)
+                    unrendered_content, context)
 
         # now build the response
         if rendered_content is None and \
@@ -363,7 +396,7 @@ class Endpoint(object):
             parse a handler result without a response class set on the endpoint.
             This is probably an issue with the pale HTTP adapter you're using,
             since that is where the response class is usually set.""")
-        self._context.response = self._response_class(*response_init_tuple)
+        context.response = self._response_class(*response_init_tuple)
 
         # patch up cache-control
         updated_cache_ctrl_from_endpoint = False
@@ -372,22 +405,22 @@ class Endpoint(object):
             headers = response_init_tuple[2]
             cache_ctrl = headers.get('Cache-Control')
             if cache_ctrl is not None:
-                self._context.response.headers['Cache-Control'] = cache_ctrl
+                context.response.headers['Cache-Control'] = cache_ctrl
                 updated_cache_ctrl_from_endpoint = True
 
         if not updated_cache_ctrl_from_endpoint:
-            self._context.response.headers['Cache-Control'] = \
+            context.response.headers['Cache-Control'] = \
                     self._default_cache
 
         # Add default json response type.
         if len(json_content):
-            self._context.response.headers["Content-Type"] = 'application/json'
+            context.response.headers["Content-Type"] = 'application/json'
         else:
-            del self._context.response.content_type
-            del self._context.response.content_length
-            status_code = getattr(self._context.response, "status_int", None) or self._context.response.status_code
+            del context.response.content_type
+            del context.response.content_length
+            status_code = getattr(context.response, "status_int", None) or context.response.status_code
             if status_code == 200: # 200 OK
-                self._context.response.status = '204 No Content'
+                context.response.status = '204 No Content'
 
 class ResourcePatch(object):
     """Represents a resource patch which is to be applied
@@ -425,7 +458,7 @@ class ResourcePatch(object):
                 resource = field.resource_type()
                 if isinstance(resource, DebugResource):
                     return value.copy()
-                new_object = {}
+                new_object = dict()
                 for k,v in value.iteritems():
                     if not k in resource._fields and self.ignore_missing_fields:
                         new_object[k] = v

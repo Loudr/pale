@@ -2,17 +2,18 @@
 
 class DefaultContext(object):
     """A default Context object for pale request data"""
-    request = None
-    headers = None
-    cookies = None
+    def __init__(self):
+        self.request = None
+        self.headers = None
+        self.cookies = None
 
-    api_version = None
+        self.api_version = None
 
-    _raw_args = None
-    args = None
-    route_args = None
+        self._raw_args = None
+        self.args = None
+        self.route_args = None
 
-    current_user = None
+        self.current_user = None
 
-    handler_result = None
-    response = None
+        self.handler_result = None
+        self.response = None

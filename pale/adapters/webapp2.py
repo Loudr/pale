@@ -32,7 +32,12 @@ def pale_webapp2_request_handler_generator(pale_endpoint):
             self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
             self.response.headers['Access-Control-Allow-Credentials'] = 'true'
             return self.response
-        return pale_endpoint._execute(self.request)
+
+        try:
+            return pale_endpoint._execute(self.request)
+        finally:
+            pale_endpoint._finally()
+
     cls = type(pale_endpoint._route_name,
             (webapp2.RequestHandler,),
             dict(pale_handler=pale_handler))
@@ -83,7 +88,7 @@ class DefaultWebapp2Context(pale.context.DefaultContext):
 
     def build_args_from_request(self, request):
         keys = request.arguments()
-        req_args = {}
+        req_args = dict()
 
         for key in keys:
             req_args[key] = request.get_all(key)
