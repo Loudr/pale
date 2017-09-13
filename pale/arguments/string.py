@@ -48,6 +48,10 @@ class StringListArgument(ListArgument):
 
         if isinstance(item_list, (str, unicode)):
             item_list = item_list.split(self.separator)
+        elif isinstance(item_list, list) and len(item_list) == 1:
+            # Separate QS strings which come in as a single list.
+            if isinstance(item_list[0], basestring) and self.separator in item_list[0]:
+                item_list = item_list[0].split(self.separator)
 
         if self.trim_whitespace:
             item_list = [ item.strip() for item in item_list ]

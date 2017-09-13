@@ -30,7 +30,7 @@ class BaseArgument(BaseField):
         """Initialize an argument.
 
         This method is usually called from the Endpoint definition, and the
-        created object is typically assigned to a key in the endpoint's 
+        created object is typically assigned to a key in the endpoint's
         `arguments` dictionary.
         """
         self.description = short_doc
