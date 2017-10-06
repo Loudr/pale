@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import types
+from collections import Iterable
 
 class BaseField(object):
     """The base class for all Fields and Arguments.
@@ -143,6 +144,11 @@ class ListField(BaseField):
         lst = super(ListField, self).render(obj, name, context)
         if lst is None:
             return []
+
+        # attempt to wrap any non-iterable in to a list of iterables.
+        if not isinstance(lst, Iterable):
+            lst = [lst]
+
         renderer = self.item_type_instance.render
         for res in lst:
             item = renderer(StaticItem(res), 'obj', context)
