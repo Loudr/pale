@@ -188,12 +188,22 @@ class Endpoint(object):
                          *
                          *
         ``_after_response_handler``
-            The `_after_response_handlers` are sepcified by the Endpoint
+            The `_after_response_handlers` are specified by the Endpoint
             definition, and enable manipulation of the response object before it
             is returned to the client, but after the response is rendered.
 
             Because these are instancemethods, they may share instance data
             from `self` specified in the endpoint's `_handle` method.
+
+        ``_finalize_content``
+            The `_finalize_content` method is overridden by the Endpoint and is called
+            after the response is rendered into a serializable result.
+
+            This method is called with two arguments, the context and the rendered content,
+            and expected to return updated rendered content.
+
+            For in-place modification of dicts, this method will still be expected
+            to return the given argument.
 
         ``_allow_cors``
             This value is set to enable CORs for a given endpoint.
@@ -382,6 +392,14 @@ class Endpoint(object):
             # maybe it's a nonetype or a simple string?
             rendered_content = self._returns._render_serializable(
                     unrendered_content, context)
+
+        try:
+            if hasattr(self, '_finalize_content'):
+                rendered_content = self._finalize_content(context, rendered_content)
+        except:
+            logging.exception("Failed to complete %s._finalize_content",
+                self.__class__.__name__)
+            raise
 
         # now build the response
         if rendered_content is None and \
