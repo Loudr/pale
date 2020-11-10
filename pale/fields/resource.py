@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+import logging
+
 from pale.fields.base import BaseField, ListField
 from pale.resource import Resource
 
@@ -18,19 +21,40 @@ class ResourceField(BaseField):
                 self.value_type,
                 description,
                 **kwargs)
-        self.resource_type = resource_type
-
-        if subfields is None:
-            subfields = resource_type._default_fields
         self.subfields = subfields
+        self.resource_type = resource_type
+        self._resource_type_resolved = False
 
-        self.resource_instance = self.resource_type(
-                'nested_resource',
-                fields=self.subfields)
+        if isinstance(resource_type, basestring):
+            self._defer_resource_type_resolution = True
+            self._resource_type_resolved = False
+            self.resource_instance = None
+        else:
+            self._defer_resource_type_resolution = False
+            self._resolve_resource_type()
+
+    def _resolve_resource_type(self):
+        if not self._resource_type_resolved:
+            if isinstance(self.resource_type, basestring):
+                resource_type_class = Resource._registered_resources.get(
+                        self.resource_type)
+                if resource_type_class is None:
+                    logging.warn("Could not find registered resource %s",
+                            self.resource_type)
+                    raise Exception("Invalid resource name %s",
+                            self.resource_type)
+                self.resource_type = resource_type_class
+            if self.subfields is None:
+                self.subfields = self.resource_type._default_fields
+            self.resource_instance = self.resource_type(
+                    'nested_resource',
+                    fields=self.subfields)
+            self._resource_type_resolved = True
 
 
     def doc_dict(self):
         doc = super(ResourceField, self).doc_dict()
+        self._resolve_resource_type()
         doc['resource_type'] = self.resource_type._value_type
         if self.subfields is None:
             logging.warn("paledoc: `subfields` on ResourceField %s is None",
@@ -45,6 +69,7 @@ class ResourceField(BaseField):
         # the base renderer basically just calls getattr, so it will
         # return the resource here
         resource = super(ResourceField, self).render(obj, name, context)
+        self._resolve_resource_type()
         renderer = self.resource_instance._render_serializable
         output = renderer(resource, context)
         return output

@@ -2,18 +2,25 @@ import logging
 import types
 
 from pale.fields import BaseField
-from pale.meta import MetaHasFields
+from pale.meta import MetaResource
 
 class Resource(object):
-    __metaclass__ = MetaHasFields
+    __metaclass__ = MetaResource
 
     _value_type = "Base Resource"
 
     _default_fields = None
 
+    _registered_resources = dict()
+
     @classmethod
     def _all_fields(cls):
         return tuple(cls._fields.keys())
+
+    @classmethod
+    def _register_resource(cls, name):
+        logging.debug("Registering resource %s: %s", name, cls)
+        cls._registered_resources[name] = cls
 
     @classmethod
     def _fix_up_fields(cls):
